@@ -207,11 +207,6 @@ void AudioEngine::AudioThread(void) {
 // use and an offset into its sample data. As time progresses we update this offset
 // until it is beyound the length of the sound sample it is attached to. At this
 // point we remove the playing souind from the list.
-//
-// Additionally, the users application may want to generate sound instead of just
-// playing audio clips (think a synthesizer for example) in whcih case we also
-// provide an "onUser..." event to allow the user to return a sound for that point
-// in time.
 float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeStep) {
 	// Accumulate sample for this channel
 	float fMixerSample = 0.f;
