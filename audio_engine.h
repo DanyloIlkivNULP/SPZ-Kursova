@@ -28,6 +28,13 @@ class AudioEngine
 	std::mutex m_muxBlockNotZero;
 	std::condition_variable m_cvBlockNotZero;
 
+	typedef std::function
+		<float(int, float, float)> audio_handler;
+
+	audio_handler
+		m_fUserSoundSample = nullptr,
+		m_fUserSoundFilter = nullptr;
+
 	class AudioSample;
 
 	// This vector holds all loaded sound samples in memory
@@ -53,12 +60,18 @@ public:
 	void PlaySample(int id, bool bLoop = false);
 	void StopSample(int id);
 
-	bool CreateAudio(unsigned int nSampleRate = 44100, unsigned int nChannels = 0x1,
-		unsigned int nBlocks = 0x8, unsigned int nBlockSamples = 512);
+	bool CreateAudio(
+		audio_handler fSoundSample = nullptr, audio_handler fSoundFilter = nullptr,
+		unsigned int nSampleRate = 44100, unsigned int nChannels = 0x1,
+		unsigned int nBlocks = 0x8, unsigned int nBlockSamples = 512
+	);
 	bool DestroyAudio(void);
 
+	float GetGlobalTime(void);
+
 private:
-	void waveOutProc(HWAVEOUT hWaveOut, UINT uMsg, DWORD dwParam1, DWORD dwParam2);
+	void waveOutProc(HWAVEOUT hWaveOut,
+		UINT uMsg, DWORD dwParam1, DWORD dwParam2);
 
 	static void CALLBACK waveOutProcWrap(HWAVEOUT hWaveOut,
 		UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2

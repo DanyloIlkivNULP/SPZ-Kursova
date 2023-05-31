@@ -41,10 +41,15 @@ void AudioEngine::PlaySample(int id, bool bLoop) {
 void AudioEngine::StopSample(int id) { /*Code...*/ }
 
 // The audio system uses by default a specific wave format
-bool AudioEngine::CreateAudio(unsigned int nSampleRate, unsigned int nChannels,
-	unsigned int nBlocks, unsigned int nBlockSamples) {
+bool AudioEngine::CreateAudio(audio_handler fSoundSample, audio_handler fSoundFilter,
+	unsigned int nSampleRate, unsigned int nChannels,
+	unsigned int nBlocks, unsigned int nBlockSamples)
+{
 	// Initialise Sound Engine
 	m_bAudioThreadActive = false;
+
+	m_fUserSoundSample = fSoundSample;
+	m_fUserSoundFilter = fSoundFilter;
 
 	m_nSampleRate = nSampleRate;
 	m_nChannels = nChannels;
@@ -235,6 +240,15 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 		m_cvActiveSamplesEmpty.notify_one();
 	}
 
-	// Return the sample
-	return(fMixerSample);
+	// The users application might be generating sound, so grab that if it exists
+	if (m_fUserSoundSample != nullptr)
+	{ fMixerSample += m_fUserSoundSample(nChannel, fGlobalTime, fTimeStep); }
+
+	// Return the sample via an optional user override to filter the sound
+	if (m_fUserSoundFilter != nullptr)
+	{ return(m_fUserSoundFilter(nChannel, fGlobalTime, fMixerSample)); }
+	else { return(fMixerSample); }
 }
+
+float AudioEngine::GetGlobalTime(void)
+{ return(m_fGlobalTime.load()); }
