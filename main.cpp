@@ -12,7 +12,7 @@ atomic<float> fFrequencyOutput = 0.f;			// dominant output frequency of instrume
 float fOctaveBaseFrequency = 3.f * 110.f;		// frequency of octave represented by keyboard
 float f12thRootOf2 = powf(2.f, 1.f / 12.f);		// assuming western 12 notes per ocatve
 
-// Function used by olcNoiseMaker to generate sound waves
+// Function used by AudioEngine to generate sound waves
 // Returns amplitude (-1.0 to +1.0) as a function of time
 float MakeNoise(int nChannel,
 	float fGlobalTime, float fTimeStep)
