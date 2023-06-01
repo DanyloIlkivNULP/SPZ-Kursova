@@ -103,11 +103,8 @@ bool AudioEngine::CreateAudio(audio_handler fSoundSample, audio_handler fSoundFi
 
 // Stop and clean up audio system
 bool AudioEngine::DestroyAudio(void) {
-	if (listActiveSamples.size() != 0x0) {
-		std::unique_lock<std::mutex> lm(m_muxActiveSamplesEmpty);
-		while (listActiveSamples.size() != 0x0)
-		{ m_cvActiveSamplesEmpty.wait(lm); }
-	}
+	if (listActiveSamples.size() != 0x0)
+		m_bAudioThreadDestroy = true;
 
 	m_bAudioThreadActive = false;
 	m_AudioThread.join();
@@ -234,11 +231,9 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 		{ return(s.bFinished); }
 	);
 
-	if (listActiveSamples.empty()) {
-		std::unique_lock<std::mutex>
-			lm(m_muxActiveSamplesEmpty);
-		m_cvActiveSamplesEmpty.notify_one();
-	}
+	if (m_bAudioThreadDestroy &&
+		listActiveSamples.empty())
+	{ return(0.f); }
 
 	// The users application might be generating sound, so grab that if it exists
 	if (m_fUserSoundSample != nullptr)

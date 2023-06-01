@@ -19,11 +19,10 @@ class AudioEngine
 	std::atomic<float> m_fGlobalTime = 0.f;
 
 	std::thread m_AudioThread;
-	std::atomic<bool> m_bAudioThreadActive = false;
+	std::atomic<bool>
+		m_bAudioThreadActive = false,
+		m_bAudioThreadDestroy = false;
 	std::atomic<unsigned int> m_nBlockFree = 0x0;
-
-	std::mutex m_muxActiveSamplesEmpty;
-	std::condition_variable m_cvActiveSamplesEmpty;
 
 	std::mutex m_muxBlockNotZero;
 	std::condition_variable m_cvBlockNotZero;

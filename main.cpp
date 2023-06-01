@@ -21,7 +21,8 @@ float MakeNoise(int nChannel,
 	return(fOutput * 0.5f); // Master Volume
 }
 
-int wmain(void) {
+int wmain(int argc, wchar_t* argv[]) {
+	UNREFERENCED_PARAMETER(argc), UNREFERENCED_PARAMETER(argv);
 	Logger::LoadLogLevel
 		(Logger::LogLevel::LOG_LVL_DEBUG);
 	Logger::ClearLog();
