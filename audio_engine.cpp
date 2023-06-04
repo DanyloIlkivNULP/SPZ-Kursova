@@ -34,10 +34,12 @@ int AudioEngine::LoadAudioSample(std::wstring sWavFile) {
 }
 
 // Add sample 'id' to the mixers sounds to play list
-void AudioEngine::PlaySample(int id, bool bLoop) {
+void AudioEngine::PlaySample(int id, float fSpeed, bool bLoop) {
 	sCurrentlyPlayingSample s;
 	s.nAudioSampleID = id;
-	s.nSamplePosition = 0x0;
+	s.fSamplePosition = 0.f;
+
+	s.fSpeed = fSpeed;
 	s.bLoop = bLoop;
 
 	s.bFinished = false;
@@ -226,12 +228,12 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 
 	for (auto& s : listActiveSamples) {
 		// Calculate sample position
-		s.nSamplePosition += (long)((float)vecAudioSamples[s.nAudioSampleID - 0x1].wavHeader.nSamplesPerSec * fTimeStep);
-
+		s.fSamplePosition += (float)vecAudioSamples[s.nAudioSampleID - 0x1].wavHeader.nSamplesPerSec * s.fSpeed * fTimeStep;
+		
 		// If sample position is valid add to the mix
-		if (s.nSamplePosition < vecAudioSamples[s.nAudioSampleID - 0x1].nSamples)
+		if (s.fSamplePosition < vecAudioSamples[s.nAudioSampleID - 0x1].nSamples)
 		{ fMixerSample += vecAudioSamples[s.nAudioSampleID - 0x1].
-			fSample[(s.nSamplePosition * vecAudioSamples[s.nAudioSampleID - 0x1].nChannels) + nChannel];
+			fSample[((long)round(s.fSamplePosition) * vecAudioSamples[s.nAudioSampleID - 0x1].nChannels) + nChannel];
 		}
 		else
 		{ s.bFinished = true; } // Else sound has completed 

@@ -58,7 +58,7 @@ int wmain(int argc, wchar_t* argv[]) {
 				)
 			{
 				size_t nSampleNumber = wSygn - L'1';
-				audio.PlaySample(nSample[nSampleNumber]);
+				audio.PlaySample(nSample[nSampleNumber], 1.75f);
 				wcout <<
 					L'\r' << L"                                                                " << L'\r';
 				wcout <<
@@ -78,8 +78,8 @@ int wmain(int argc, wchar_t* argv[]) {
 				bKeyPressed = true;
 			}
 		if (!bKeyPressed) {
-			if (nCurrentKey != -1)
-			{ nCurrentKey = -1; }
+			if (nCurrentKey != -0x1)
+			{ nCurrentKey = -0x1; }
 			fFrequencyOutput = 0.f;
 		}
 	}

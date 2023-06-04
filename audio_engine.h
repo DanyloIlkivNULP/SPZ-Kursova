@@ -46,7 +46,9 @@ class AudioEngine
 	// current playback
 	struct sCurrentlyPlayingSample {
 		int nAudioSampleID = 0x0;
-		long nSamplePosition = 0x0;
+		float fSamplePosition = 0.f;
+
+		float fSpeed = 1.f;
 		bool bLoop = false;
 
 		bool bFinished = false;
@@ -61,7 +63,7 @@ public:
 
 	int LoadAudioSample(std::wstring sWavFile);
 
-	void PlaySample(int id, bool bLoop = false);
+	void PlaySample(int id, float fSpeed = 1.f, bool bLoop = false);
 	void StopSample(int id);
 
 	bool CreateAudio(
