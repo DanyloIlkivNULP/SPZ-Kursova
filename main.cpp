@@ -17,7 +17,7 @@ float f12thRootOf2 = powf(2.f, 1.f / 12.f);		// assuming western 12 notes per oc
 float MakeNoise(int nChannel,
 	float fGlobalTime, float fTimeStep)
 {
-	float fOutput = sinf(fFrequencyOutput * 2.f * 3.14159f * fGlobalTime) + sinf((fFrequencyOutput + 5.f) * 2.f * 3.14159f * fGlobalTime);
+	float fOutput = sinf(fFrequencyOutput * 2.f * 3.14159f * fGlobalTime);
 	return(fOutput * 0.5f); // Master Volume
 }
 
@@ -30,15 +30,15 @@ int wmain(int argc, wchar_t* argv[]) {
 	ConstructConsole(90, 30, L"[AudioEngine]-TEST-0",
 		10, 16, L"Consolas", L"C");
 
-	AudioEngine audio;
-	audio.CreateAudio(&MakeNoise);
+	AudioEngine audio(&MakeNoise);
+	audio.CreateAudio();
 
-	const wchar_t* cSample[0x3] = {
+	const wchar_t* cSample[] = {
 		L"test_0.wav",
 		L"test_1.wav",
 		L"test_2.wav"
 	};
-	int nSample[0x3] = { 0x0 };
+	int nSample[sizeof(cSample) / sizeof(const wchar_t*)] = { 0x0 };
 
 	for (int i = 0x0; i < sizeof(cSample) / sizeof(wchar_t*); i++) {
 		nSample[i] = audio.LoadAudioSample(cSample[i]);
@@ -50,13 +50,9 @@ int wmain(int argc, wchar_t* argv[]) {
 		}
 	}
 
-	wint_t wSygn = L'\0';
-	int nCurrentKey = -0x1;
-	bool bKeyPressed = false;
-
-	while (wSygn != L'\r') {
+	while (TRUE) {
 		if (_kbhit()) {
-			wSygn = _getwch();
+			wint_t wSygn = _getwch();
 			if (wSygn >= L'1' &&
 				wSygn < L'1' + sizeof(cSample) / sizeof(wchar_t*)
 				)
@@ -68,8 +64,10 @@ int wmain(int argc, wchar_t* argv[]) {
 				wcout <<
 					L"Sample[" << nSampleNumber << L"] : " << cSample[nSampleNumber];
 			}
+			else if (wSygn == L'\r') { break; }
 		}
-		bKeyPressed = false;
+		bool bKeyPressed = false;
+		int nCurrentKey = -0x1;
 		for (int k = 0; k < 16; k++)
 			if (GetAsyncKeyState((unsigned char)("ZSXCFVGBNJMK\xbcL\xbe\xbf"[k])) & 0x8000) {
 				if (nCurrentKey != k && !bKeyPressed) {

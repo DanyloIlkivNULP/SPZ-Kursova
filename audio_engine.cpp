@@ -4,7 +4,13 @@
 
 #include "logger.h"
 
-AudioEngine::AudioEngine(void) {
+AudioEngine::AudioEngine(
+	audio_handler fSoundSample,
+	audio_handler fSoundFilter
+) :
+		m_fUserSoundSample(fSoundSample),
+		m_fUserSoundFilter(fSoundFilter)
+{
 	(void)Logger::LogMessage
 		(Logger::LogLevel::LOG_LVL_INFO,
 			L"[Function] : " __FUNCTION__ L" - Success!\t[File] : " __FILE__);
@@ -41,15 +47,12 @@ void AudioEngine::PlaySample(int id, bool bLoop) {
 void AudioEngine::StopSample(int id) { /*Code...*/ }
 
 // The audio system uses by default a specific wave format
-bool AudioEngine::CreateAudio(audio_handler fSoundSample, audio_handler fSoundFilter,
+bool AudioEngine::CreateAudio(
 	unsigned int nSampleRate, unsigned int nChannels,
 	unsigned int nBlocks, unsigned int nBlockSamples)
 {
 	// Initialise Sound Engine
 	m_bAudioThreadActive = false;
-
-	m_fUserSoundSample = fSoundSample;
-	m_fUserSoundFilter = fSoundFilter;
 
 	m_nSampleRate = nSampleRate;
 	m_nChannels = nChannels;
@@ -103,10 +106,12 @@ bool AudioEngine::CreateAudio(audio_handler fSoundSample, audio_handler fSoundFi
 
 // Stop and clean up audio system
 bool AudioEngine::DestroyAudio(void) {
-	if (listActiveSamples.size() != 0x0)
-		m_bAudioThreadDestroy = true;
-
 	m_bAudioThreadActive = false;
+
+	std::unique_lock<std::mutex>
+		lm(m_muxAudioThreadDestroy);
+	m_cvAudioThreadDestroy.wait(lm);
+
 	m_AudioThread.join();
 
 	return(false);
@@ -197,6 +202,12 @@ void AudioEngine::AudioThread(void) {
 		m_nBlockCurrent += 0x1;
 		m_nBlockCurrent %= m_nBlockCount;
 	}
+
+	m_fUserSoundSample = m_fUserSoundFilter = nullptr;
+
+	std::unique_lock<std::mutex>
+		lm(m_muxAudioThreadDestroy);
+	m_cvAudioThreadDestroy.notify_one();
 }
 
 
@@ -230,10 +241,6 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 	listActiveSamples.remove_if([](const sCurrentlyPlayingSample& s)
 		{ return(s.bFinished); }
 	);
-
-	if (m_bAudioThreadDestroy &&
-		listActiveSamples.empty())
-	{ return(0.f); }
 
 	// The users application might be generating sound, so grab that if it exists
 	if (m_fUserSoundSample != nullptr)

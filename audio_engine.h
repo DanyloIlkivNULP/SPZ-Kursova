@@ -20,9 +20,11 @@ class AudioEngine
 
 	std::thread m_AudioThread;
 	std::atomic<bool>
-		m_bAudioThreadActive = false,
-		m_bAudioThreadDestroy = false;
+		m_bAudioThreadActive = false;
 	std::atomic<unsigned int> m_nBlockFree = 0x0;
+
+	std::mutex m_muxAudioThreadDestroy;
+	std::condition_variable m_cvAudioThreadDestroy;
 
 	std::mutex m_muxBlockNotZero;
 	std::condition_variable m_cvBlockNotZero;
@@ -52,7 +54,10 @@ class AudioEngine
 	std::list<sCurrentlyPlayingSample> listActiveSamples;
 
 public:
-	AudioEngine(void); ~AudioEngine(void);
+	AudioEngine(
+		audio_handler fSoundSample = nullptr,
+		audio_handler fSoundFilter = nullptr
+	); ~AudioEngine(void);
 
 	int LoadAudioSample(std::wstring sWavFile);
 
@@ -60,7 +65,6 @@ public:
 	void StopSample(int id);
 
 	bool CreateAudio(
-		audio_handler fSoundSample = nullptr, audio_handler fSoundFilter = nullptr,
 		unsigned int nSampleRate = 44100, unsigned int nChannels = 0x1,
 		unsigned int nBlocks = 0x8, unsigned int nBlockSamples = 512
 	);
