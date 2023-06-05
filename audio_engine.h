@@ -5,19 +5,31 @@
 #include "framework.h"
 
 class AudioEngine {
+	typedef signed int AUDIOID, PLAYERID;
 	typedef std::function
-		<float(int, float, float)> audio_handler;
+		<float(int, float, float)> AUDIO_HANDLER;
 	
 public:
 	AudioEngine(
-		audio_handler fSoundSample = nullptr,
-		audio_handler fSoundFilter = nullptr
+		AUDIO_HANDLER fSoundSample = nullptr,
+		AUDIO_HANDLER fSoundFilter = nullptr
 	); ~AudioEngine(void);
 
-	virtual int LoadAudioSample(std::wstring sWavFile);
+	AudioEngine(const AudioEngine& ae) = delete;
+	AudioEngine& operator=(const AudioEngine& ae) = delete;
 
-	virtual void PlaySample(int id);
-	virtual void StopSample(int id);
+	virtual AUDIOID LoadAudioSample(std::wstring sWavFile);
+	virtual void PlayAudioSample(AUDIOID ID);
+
+	virtual PLAYERID CreateAudioPlayer(AUDIOID ID);
+	virtual void
+		DestroyAudioPlayer(PLAYERID ID);
+
+	virtual void
+		AudioPlayerStart(PLAYERID ID);
+	virtual void
+		AudioPlayerStop(PLAYERID ID);
+
 
 	virtual bool CreateAudio(
 		unsigned int nSampleRate = 44100, unsigned int nChannels = 0x1,
@@ -57,42 +69,45 @@ protected:
 		m_bAudioThreadActive = false;
 	std::atomic<unsigned int> m_nBlockFree = 0x0;
 
+	std::mutex m_muxProcessAudio;
+
 	std::mutex m_muxAudioThreadDestroy;
 	std::condition_variable m_cvAudioThreadDestroy;
 
 	std::mutex m_muxBlockNotZero;
 	std::condition_variable m_cvBlockNotZero;
 
-	audio_handler
+	AUDIO_HANDLER
 		m_fUserSoundSample = nullptr,
 		m_fUserSoundFilter = nullptr;
 
 	class AudioSample;
 
 	// This vector holds all loaded sound samples in memory
-	std::vector<std::unique_ptr<AudioSample>>
+	std::vector<std::shared_ptr<AudioSample>>
 		vecAudioSamples;
 
 	// This class represents a sound that is currently playing. It only
 	// holds the sound ID and where this instance of it is up to for its
 	// current playback
-	class PlayingAudioSample;
+	class PlayingAudio;
 
-	std::list<std::unique_ptr<PlayingAudioSample>>
+	std::list<std::shared_ptr<PlayingAudio>>
 		listActiveSamples;
+
+	// This class is used to control
+	// the playback of an audio sample
+	class AudioPlayer;
+
+	std::list<std::shared_ptr<AudioPlayer>>
+		listAudioPlayers;
 
 	virtual float GetMixerOutput(int nChannel,
 		float fGlobalTime, float fTimeStep);
 
-	template<class PlayingAudioSampleType, typename ...ArgumentTypes>
-	void PlaySample(int id, ArgumentTypes&& ...args) {
-		std::unique_ptr<PlayingAudioSampleType> s = std::make_unique
-			<PlayingAudioSampleType>(id, std::forward<ArgumentTypes>(args)...);
-		listActiveSamples.push_back(std::move(s));
-	}
 	template<class AudioSampleType, typename ...ArgumentTypes>
-	int LoadAudioSample(std::wstring sWavFile, ArgumentTypes&& ...args) {
-		std::unique_ptr<AudioSampleType> a = std::make_unique
+	AUDIOID LoadAudioSample(std::wstring sWavFile, ArgumentTypes&& ...args) {
+		std::shared_ptr<AudioSampleType> a = std::make_shared
 			<AudioSampleType>(sWavFile, std::forward<ArgumentTypes>(args)...);
 
 		if (a->m_bValid) {
@@ -101,6 +116,12 @@ protected:
 		}
 		else
 		{ return(-0x1); }
+	}
+	template<class CreatingPlayingAudioType, typename ...ArgumentTypes>
+	void CreatePlayingAudio(int id, ArgumentTypes&& ...args) {
+		std::shared_ptr<CreatingPlayingAudioType> s = std::make_shared
+			<CreatingPlayingAudioType>(id, std::forward<ArgumentTypes>(args)...);
+		listActiveSamples.push_back(std::move(s));
 	}
 };
 

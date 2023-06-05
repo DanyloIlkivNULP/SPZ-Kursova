@@ -2,16 +2,18 @@
 
 #include "audio_sample.h"
 
-#include "playing_audio_sample.h"
+#include "playing_audio.h"
+
+#include "audio_player.h"
 
 #include "logger.h"
 
 AudioEngine::AudioEngine(
-	audio_handler fSoundSample,
-	audio_handler fSoundFilter
+	AUDIO_HANDLER fSoundSample,
+	AUDIO_HANDLER fSoundFilter
 ) :
-		m_fUserSoundSample(fSoundSample),
-		m_fUserSoundFilter(fSoundFilter)
+	m_fUserSoundSample(fSoundSample),
+	m_fUserSoundFilter(fSoundFilter)
 {
 	(void)Logger::LogMessage
 		(Logger::LogLevel::LOG_LVL_INFO,
@@ -25,17 +27,40 @@ AudioEngine::~AudioEngine(void) {
 
 // Load a 16-bit WAVE file @ 44100Hz ONLY into memory. A sample ID
 // number is returned if successful, otherwise -1
-int AudioEngine::LoadAudioSample(std::wstring sWavFile) {
-	int nResult = -(0x1);
-	nResult = LoadAudioSample<AudioSample>(sWavFile);
-	return(nResult);
+AudioEngine::AUDIOID AudioEngine::LoadAudioSample(std::wstring sWavFile) {
+	std::lock_guard<std::mutex>
+		lgProcessAudio(m_muxProcessAudio);
+
+	AUDIOID idResult = -(0x1);
+	idResult = LoadAudioSample<AudioSample>(sWavFile);
+	return(idResult);
 }
 
 // Add sample 'id' to the mixers sounds to play list
-void AudioEngine::PlaySample(int id)
-{ PlaySample<PlayingAudioSample>(id); }
+void AudioEngine::PlayAudioSample(AUDIOID ID) {
+	std::lock_guard<std::mutex>
+		lgProcessAudio(m_muxProcessAudio);
 
-void AudioEngine::StopSample(int id) { /*Code...*/ }
+	CreatePlayingAudio<PlayingAudio>(ID);
+}
+
+AudioEngine::PLAYERID AudioEngine::CreateAudioPlayer(AUDIOID ID) {
+	std::lock_guard<std::mutex>
+		lgProcessAudio(m_muxProcessAudio);
+
+	std::shared_ptr<AudioPlayer> p = std::make_shared
+		<AudioPlayer>(ID, this);
+
+	listAudioPlayers.push_back(std::move(p));
+	return(listAudioPlayers.size());
+}
+void AudioEngine::DestroyAudioPlayer
+	(PLAYERID ID) { /*Code...*/ }
+
+void AudioEngine::AudioPlayerStart
+	(PLAYERID ID) { /*Code...*/ }
+void AudioEngine::AudioPlayerStop
+	(PLAYERID ID) { /*Code...*/ }
 
 // The audio system uses by default a specific wave format
 bool AudioEngine::CreateAudio(
@@ -43,8 +68,6 @@ bool AudioEngine::CreateAudio(
 	unsigned int nBlocks, unsigned int nBlockSamples)
 {
 	// Initialise Sound Engine
-	m_bAudioThreadActive = false;
-
 	m_nSampleRate = nSampleRate;
 	m_nChannels = nChannels;
 	m_nBlockCount = nBlocks;
@@ -215,15 +238,21 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 	// Accumulate sample for this channel
 	float fMixerSample = 0.f;
 
-	for (auto& s : listActiveSamples) { fMixerSample = s->ProcessAudioSample(
-		nChannel, fGlobalTime, fTimeStep, fMixerSample,
-			vecAudioSamples[s->AudioSampleID() - 0x1].get());
-	}
+	auto fProcessAudio = [&](std::list<std::shared_ptr<PlayingAudio>>& list) {
+		std::lock_guard<std::mutex>
+			lgProcessAudio(m_muxProcessAudio);
 
-	// If sounds have completed then remove them
-	listActiveSamples.remove_if([](const std::unique_ptr<PlayingAudioSample>& s)
-		{ return(s->IsFinish()); }
-	);
+		for (auto& s : list) {
+			fMixerSample = s->ProcessAudioSample(
+				nChannel, fGlobalTime, fTimeStep, fMixerSample,
+				vecAudioSamples[s->AudioSampleID() - 0x1]);
+		}
+
+		// If sounds have completed then remove them
+		list.remove_if([](const std::shared_ptr<PlayingAudio>& s)
+			{ return(s->IsFinish()); }
+		);
+	}; fProcessAudio(listActiveSamples);
 
 	// The users application might be generating sound, so grab that if it exists
 	if (m_fUserSoundSample != nullptr)

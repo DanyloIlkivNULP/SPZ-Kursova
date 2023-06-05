@@ -59,7 +59,7 @@ int wmain(int argc, wchar_t* argv[]) {
 				)
 			{
 				size_t nSampleNumber = wSygn - L'1';
-				audio.PlaySample(nSample[nSampleNumber]);
+				audio.PlayAudioSample(nSample[nSampleNumber]);
 				wcout <<
 					L'\r' << L"                                                                " << L'\r';
 				wcout <<
