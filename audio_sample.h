@@ -4,22 +4,22 @@
 
 #include "audio_engine.h"
 
-class AudioEngine::AudioSample {
-
+class AudioEngine::AudioSample
+{
+	friend class AudioEngine;
+	bool m_bValid = false;
 public:
 	AudioSample(void); ~AudioSample(void);
 
 	AudioSample(std::wstring sWavFile);
 
+protected:
 	WAVEFORMATEX wavHeader = { 0x0 };
 
-	float* fSample = nullptr;
-	long nSamples = 0x0;
-	int nChannels = 0x0;
+	float* m_fSample = nullptr;
+	long m_nSamples = 0x0;
+	int m_nChannels = 0x0;
 
-	bool bSampleValid = false;
-
-protected:
 	virtual bool LoadAudioSample
 		(std::wstring sWavFile);
 };

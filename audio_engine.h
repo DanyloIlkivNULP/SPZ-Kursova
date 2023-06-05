@@ -27,7 +27,7 @@ public:
 
 
 
-	float GetGlobalTime(void);
+	float GetGlobalTime(void) const;
 
 private:
 	void waveOutProc(HWAVEOUT hWaveOut,
@@ -83,6 +83,25 @@ protected:
 
 	virtual float GetMixerOutput(int nChannel,
 		float fGlobalTime, float fTimeStep);
+
+	template<class PlayingAudioSampleType, typename ...ArgumentTypes>
+	void PlaySample(int id, ArgumentTypes&& ...args) {
+		std::unique_ptr<PlayingAudioSampleType> s = std::make_unique
+			<PlayingAudioSampleType>(id, std::forward<ArgumentTypes>(args)...);
+		listActiveSamples.push_back(std::move(s));
+	}
+	template<class AudioSampleType, typename ...ArgumentTypes>
+	int LoadAudioSample(std::wstring sWavFile, ArgumentTypes&& ...args) {
+		std::unique_ptr<AudioSampleType> a = std::make_unique
+			<AudioSampleType>(sWavFile, std::forward<ArgumentTypes>(args)...);
+
+		if (a->m_bValid) {
+			vecAudioSamples.push_back(std::move(a));
+			return(vecAudioSamples.size());
+		}
+		else
+		{ return(-0x1); }
+	}
 };
 
 #endif //_AUDIO_ENGINE_H_

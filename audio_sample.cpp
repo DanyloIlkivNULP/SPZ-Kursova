@@ -51,16 +51,16 @@ bool AudioEngine::AudioSample::LoadAudioSample(std::wstring sWavFile) {
 	}
 
 	// Finally got to data, so read it all in and convert to float samples
-	nSamples = nChunksize / (wavHeader.nChannels * (wavHeader.wBitsPerSample >> 0x3));
-	nChannels = wavHeader.nChannels;
+	m_nSamples = nChunksize / (wavHeader.nChannels * (wavHeader.wBitsPerSample >> 0x3));
+	m_nChannels = wavHeader.nChannels;
 
 	// Create floating point buffer to hold audio sample
-	fSample = new float[nSamples * nChannels];
-	float* pSample = fSample;
+	m_fSample = new float[m_nSamples * m_nChannels];
+	float* pSample = m_fSample;
 
 	// Read in audio data and normalise
-	for (long i = 0x0; i < nSamples; i++)
-		for (int c = 0x0; c < nChannels; c++) {
+	for (long i = 0x0; i < m_nSamples; i++)
+		for (int c = 0x0; c < m_nChannels; c++) {
 			short s = 0x0;
 			std::fread(&s, sizeof(short), 0x1, f);
 			*pSample = (float)s / (float)(MAXSHORT);
@@ -69,7 +69,7 @@ bool AudioEngine::AudioSample::LoadAudioSample(std::wstring sWavFile) {
 
 	// All done, flag sound as valid
 	std::fclose(f);
-	bSampleValid = true;
+	m_bValid = true;
 
 	return(true);
 }

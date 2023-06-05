@@ -26,23 +26,14 @@ AudioEngine::~AudioEngine(void) {
 // Load a 16-bit WAVE file @ 44100Hz ONLY into memory. A sample ID
 // number is returned if successful, otherwise -1
 int AudioEngine::LoadAudioSample(std::wstring sWavFile) {
-	std::unique_ptr<AudioSample> a = std::make_unique
-		<AudioSample>(sWavFile);
-
-	if (a->bSampleValid) {
-		vecAudioSamples.push_back(std::move(a));
-		return(vecAudioSamples.size());
-	}
-	else
-	{ return(-0x1); }
+	int nResult = -(0x1);
+	nResult = LoadAudioSample<AudioSample>(sWavFile);
+	return(nResult);
 }
 
 // Add sample 'id' to the mixers sounds to play list
-void AudioEngine::PlaySample(int id) {
-	std::unique_ptr<PlayingAudioSample> s = std::make_unique
-		<PlayingAudioSample>(id);
-	listActiveSamples.push_back(std::move(s));
-}
+void AudioEngine::PlaySample(int id)
+{ PlaySample<PlayingAudioSample>(id); }
 
 void AudioEngine::StopSample(int id) { /*Code...*/ }
 
@@ -226,12 +217,12 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 
 	for (auto& s : listActiveSamples) { fMixerSample = s->ProcessAudioSample(
 		nChannel, fGlobalTime, fTimeStep, fMixerSample,
-			vecAudioSamples[s->GetAudioSampleID() - 0x1].get());
+			vecAudioSamples[s->AudioSampleID() - 0x1].get());
 	}
 
 	// If sounds have completed then remove them
 	listActiveSamples.remove_if([](const std::unique_ptr<PlayingAudioSample>& s)
-		{ return(s->m_bFinished); }
+		{ return(s->IsFinish()); }
 	);
 
 	// The users application might be generating sound, so grab that if it exists
@@ -244,5 +235,5 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 	else { return(fMixerSample); }
 }
 
-float AudioEngine::GetGlobalTime(void)
+float AudioEngine::GetGlobalTime(void) const
 { return(m_fGlobalTime.load()); }
