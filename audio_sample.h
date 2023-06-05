@@ -18,6 +18,10 @@ public:
 	int nChannels = 0x0;
 
 	bool bSampleValid = false;
+
+protected:
+	virtual bool LoadAudioSample
+		(std::wstring sWavFile);
 };
 
 #endif //_AUDIO_SAMPLE_H_

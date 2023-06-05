@@ -8,17 +8,24 @@ AudioEngine::AudioSample::~AudioSample(void)
 { /*Code...*/ }
 
 AudioEngine::AudioSample::AudioSample(std::wstring sWavFile) {
+	if(!LoadAudioSample(sWavFile))
+	{ Logger::ShowMessage(L"LoadAudioSample - Failed!",
+		L"Error!");
+	}
+}
+
+bool AudioEngine::AudioSample::LoadAudioSample(std::wstring sWavFile) {
 	// Load Wav file and convert to float format
 	FILE* f = nullptr;
 	_wfopen_s(&f, sWavFile.c_str(), L"rb");
-	if (f == nullptr) { return; }
+	if (f == nullptr) { return(false); }
 
 	char dump[0x4] = { 0x0 };
 	std::fread(&dump, sizeof(char), 0x4, f); // Read "RIFF"
-	if (strncmp(dump, "RIFF", 0x4) != 0x0) { return; }
+	if (strncmp(dump, "RIFF", 0x4) != 0x0) { return(false); }
 	std::fread(&dump, sizeof(char), 0x4, f); // Not Interested
 	std::fread(&dump, sizeof(char), 0x4, f); // Read "WAVE"
-	if (strncmp(dump, "WAVE", 0x4) != 0x0) { return; }
+	if (strncmp(dump, "WAVE", 0x4) != 0x0) { return(false); }
 
 	// Read Wave description chunk
 	std::fread(&dump, sizeof(char), 0x4, f); // Read "FMT"
@@ -30,7 +37,7 @@ AudioEngine::AudioSample::AudioSample(std::wstring sWavFile) {
 
 	// Just check if wave format is compatible with AE
 	if (wavHeader.wBitsPerSample != 0x10 || wavHeader.nSamplesPerSec != 44100)
-	{ std::fclose(f); return; }
+	{ std::fclose(f); return(false); }
 
 	// Search for audio data chunk
 	long nChunksize = 0x0;
@@ -63,4 +70,7 @@ AudioEngine::AudioSample::AudioSample(std::wstring sWavFile) {
 	// All done, flag sound as valid
 	std::fclose(f);
 	bSampleValid = true;
+
+	return(true);
 }
+

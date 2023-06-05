@@ -31,6 +31,7 @@ Character Set -> Use Unicode. Thanks!
 #include <vector>
 #include <list>
 
+#include <memory>
 #include <functional>
 #include <chrono>
 

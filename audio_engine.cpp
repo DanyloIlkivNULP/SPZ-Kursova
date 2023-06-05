@@ -2,6 +2,8 @@
 
 #include "audio_sample.h"
 
+#include "playing_audio_sample.h"
+
 #include "logger.h"
 
 AudioEngine::AudioEngine(
@@ -24,9 +26,11 @@ AudioEngine::~AudioEngine(void) {
 // Load a 16-bit WAVE file @ 44100Hz ONLY into memory. A sample ID
 // number is returned if successful, otherwise -1
 int AudioEngine::LoadAudioSample(std::wstring sWavFile) {
-	AudioSample a(sWavFile);
-	if (a.bSampleValid) {
-		vecAudioSamples.push_back(a);
+	std::unique_ptr<AudioSample> a = std::make_unique
+		<AudioSample>(sWavFile);
+
+	if (a->bSampleValid) {
+		vecAudioSamples.push_back(std::move(a));
 		return(vecAudioSamples.size());
 	}
 	else
@@ -34,16 +38,10 @@ int AudioEngine::LoadAudioSample(std::wstring sWavFile) {
 }
 
 // Add sample 'id' to the mixers sounds to play list
-void AudioEngine::PlaySample(int id, float fSpeed, bool bLoop) {
-	sCurrentlyPlayingSample s;
-	s.nAudioSampleID = id;
-	s.fSamplePosition = 0.f;
-
-	s.fSpeed = fSpeed;
-	s.bLoop = bLoop;
-
-	s.bFinished = false;
-	listActiveSamples.push_back(s);
+void AudioEngine::PlaySample(int id) {
+	std::unique_ptr<PlayingAudioSample> s = std::make_unique
+		<PlayingAudioSample>(id);
+	listActiveSamples.push_back(std::move(s));
 }
 
 void AudioEngine::StopSample(int id) { /*Code...*/ }
@@ -226,22 +224,14 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 	// Accumulate sample for this channel
 	float fMixerSample = 0.f;
 
-	for (auto& s : listActiveSamples) {
-		// Calculate sample position
-		s.fSamplePosition += (float)vecAudioSamples[s.nAudioSampleID - 0x1].wavHeader.nSamplesPerSec * s.fSpeed * fTimeStep;
-		
-		// If sample position is valid add to the mix
-		if (s.fSamplePosition < vecAudioSamples[s.nAudioSampleID - 0x1].nSamples)
-		{ fMixerSample += vecAudioSamples[s.nAudioSampleID - 0x1].
-			fSample[((long)round(s.fSamplePosition) * vecAudioSamples[s.nAudioSampleID - 0x1].nChannels) + nChannel];
-		}
-		else
-		{ s.bFinished = true; } // Else sound has completed 
+	for (auto& s : listActiveSamples) { fMixerSample = s->ProcessAudioSample(
+		nChannel, fGlobalTime, fTimeStep, fMixerSample,
+			vecAudioSamples[s->GetAudioSampleID() - 0x1].get());
 	}
 
 	// If sounds have completed then remove them
-	listActiveSamples.remove_if([](const sCurrentlyPlayingSample& s)
-		{ return(s.bFinished); }
+	listActiveSamples.remove_if([](const std::unique_ptr<PlayingAudioSample>& s)
+		{ return(s->m_bFinished); }
 	);
 
 	// The users application might be generating sound, so grab that if it exists
