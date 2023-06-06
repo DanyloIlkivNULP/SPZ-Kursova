@@ -39,6 +39,8 @@ public:
 	~AudioPlayer(void);
 
 	void PauseAudio(void);
+	void PauseAudio
+		(bool bState);
 
 	void PositonAudio
 		(float fSamplePosition);

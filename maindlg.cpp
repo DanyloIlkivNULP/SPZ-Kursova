@@ -101,7 +101,12 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				m_conTrackBar.hWndTrack, TBM_GETPOS, 0x0, 0x0
 			);
 			{ m_ap->PositonAudio(m_conTrackBar.lPos / 100.f); }
-				m_conTrackBar.bHold = 0x1;
+
+			m_conTrackBar.bHold = 0x1;
+			if (m_conTrackBar.lPos == 100)
+			{ m_conTrackBar.lPos = 0x0;
+				m_ap.get()->PauseAudio(false);
+			}
 		}
 		else { m_conTrackBar.bHold = 0x0; }
 	} break;
@@ -114,9 +119,11 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		switch (nID) {
 		case 0x0: {
 			if (m_conTrackBar.bHold) { break; }
+			m_conTrackBar.lPos = (LONG)
+				(m_ap.get()->CurrentPositonAudio() * 100.f);
 			SendMessage(
 				m_conTrackBar.hWndTrack, TBM_SETPOS,
-				(WPARAM)TRUE, (LPARAM)(m_ap.get()->CurrentPositonAudio() * 100.f)
+				(WPARAM)TRUE, (LPARAM)(m_conTrackBar.lPos)
 			);
 		}
 		default:

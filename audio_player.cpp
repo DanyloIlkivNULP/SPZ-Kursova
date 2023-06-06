@@ -22,6 +22,11 @@ void AudioPlayer::PauseAudio(void) {
 		lgProcessAudio(m_pAE->m_muxProcessAudio);
 	m_bPause = !m_bPause;
 }
+void AudioPlayer::PauseAudio(bool bState) {
+	std::lock_guard<std::mutex>
+		lgProcessAudio(m_pAE->m_muxProcessAudio);
+	m_bPause = bState;
+}
 
 void AudioPlayer::PositonAudio(float fSamplePosition) {
 	std::lock_guard<std::mutex>
@@ -53,6 +58,7 @@ float AudioPlayer::AudioHandler(int nChannel,
 	}
 	else
 	{
+		m_bPause = true;
 		m_pCPA.get()->m_fSamplePosition = 0.f;
 	} // Else sound has completed
 linkExit:
