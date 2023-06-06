@@ -96,10 +96,11 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		HWND hWndTrack = (HWND)lParam;
 		if (m_conTrackBar.hWndTrack != hWndTrack) { break; }
 
-		if (LOWORD(wParam) == SB_ENDSCROLL) {
-			m_ap->PositonAudio(m_conTrackBar.lPos / 100.f);
+		if (LOWORD(wParam) != SB_ENDSCROLL)
+		{ m_conTrackBar.lPos = HIWORD(wParam);
+			if (LOWORD(wParam) == SB_THUMBTRACK)
+			{ m_ap->PositonAudio(m_conTrackBar.lPos / 100.f); }
 		}
-		m_conTrackBar.lPos = HIWORD(wParam);
 	} break;
 	case WM_VSCROLL: {
 		/*Code...*/
