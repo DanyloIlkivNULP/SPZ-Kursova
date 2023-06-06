@@ -45,11 +45,11 @@ bool MainDlg::OnUserCreate(void) {
 	SendMessage(m_conTrackBar.hWndTrack, TBM_SETRANGE,
 		(WPARAM)TRUE, (LPARAM)MAKELONG(0x0, 100));
 
-	SendMessage(m_conTrackBar.hWndTrack, TBM_SETSEL,
-		0x0, (LPARAM)MAKELONG(0x0, 0x0));
+	(void)SendMessage(m_conTrackBar.hWndTrack, TBM_SETPAGESIZE,
+		0x0, (LPARAM)0xA);
 
-	SendMessage(m_conTrackBar.hWndTrack, TBM_SETPAGESIZE,
-		0x0, (LPARAM)32);
+	(void)SetTimer
+		(m_hWnd, 0x0, 0x1, NULL);
 
 	return(true);
 }
@@ -96,15 +96,33 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		HWND hWndTrack = (HWND)lParam;
 		if (m_conTrackBar.hWndTrack != hWndTrack) { break; }
 
-		if (LOWORD(wParam) != SB_ENDSCROLL)
-		{ m_conTrackBar.lPos = HIWORD(wParam);
-			if (LOWORD(wParam) == SB_THUMBTRACK)
+		if (LOWORD(wParam) != SB_ENDSCROLL) { 
+			m_conTrackBar.lPos = SendMessage(
+				m_conTrackBar.hWndTrack, TBM_GETPOS, 0x0, 0x0
+			);
 			{ m_ap->PositonAudio(m_conTrackBar.lPos / 100.f); }
+				m_conTrackBar.bHold = 0x1;
 		}
+		else { m_conTrackBar.bHold = 0x0; }
 	} break;
 	case WM_VSCROLL: {
 		/*Code...*/
 	} break;
+
+	case WM_TIMER: {
+		INT nID = (INT)wParam;
+		switch (nID) {
+		case 0x0: {
+			if (m_conTrackBar.bHold) { break; }
+			SendMessage(
+				m_conTrackBar.hWndTrack, TBM_SETPOS,
+				(WPARAM)TRUE, (LPARAM)(m_ap.get()->CurrentPositonAudio() * 100.f)
+			);
+		}
+		default:
+			break;
+		}
+	}
 
 	case WM_PAINT: {
 		UNREFERENCED_PARAMETER(lParam), UNREFERENCED_PARAMETER(wParam);

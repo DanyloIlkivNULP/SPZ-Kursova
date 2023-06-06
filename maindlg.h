@@ -27,6 +27,8 @@ private:
 	struct {
 		HWND hWndTrack = NULL;
 		LONG lPos = 0x0;
+
+		bool bHold = 0x0;
 	} m_conTrackBar;
 };
 
