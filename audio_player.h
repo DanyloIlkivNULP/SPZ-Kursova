@@ -40,12 +40,25 @@ public:
 
 	void PauseAudio(void);
 
+	void PositonAudio
+		(float fSamplePosition);
+
+	float CurrentPositonAudio(void) const;
+
 protected:
 	pAudioEngine m_pAE = nullptr;
+
+	std::shared_ptr
+		<AudioEngine::AudioSample> m_pAS = nullptr;
 	std::shared_ptr
 		<AudioEngine::PlayingAudio> m_pCPA = nullptr;
 
 	bool m_bPause = false;
+
+	virtual float AudioHandler(int nChannel,
+		float fGlobalTime, float fTimeStep, float fMixerSample,
+		const std::shared_ptr<AudioEngine::AudioSample>& pS
+	);
 };
 
 #endif // _AUDIO_PLAYER_H_

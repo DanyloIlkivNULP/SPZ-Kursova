@@ -8,6 +8,9 @@ AudioPlayer::AudioPlayer(pAudioEngine pAE,
 	std::lock_guard<std::mutex>
 		lgProcessAudio(m_pAE->m_muxProcessAudio);
 
+	m_pAS = m_pAE->
+		vecAudioSamples[nAudioSampleID - 0x1];
+
 	m_pAE->CreatePlayingAudio
 		<ActivePlayingAudio>(nAudioSampleID, this);
 	m_pCPA = m_pAE->listActiveSamples.back();
@@ -19,6 +22,44 @@ void AudioPlayer::PauseAudio(void) {
 		lgProcessAudio(m_pAE->m_muxProcessAudio);
 	m_bPause = !m_bPause;
 }
+
+void AudioPlayer::PositonAudio(float fSamplePosition) {
+	std::lock_guard<std::mutex>
+		lgProcessAudio(m_pAE->m_muxProcessAudio);
+	m_pCPA.get()->m_fSamplePosition = m_pAS.get()->m_nSamples * fSamplePosition;
+}
+
+float AudioPlayer::CurrentPositonAudio(void) const
+{ return(m_pCPA.get()->m_fSamplePosition / m_pAS.get()->m_nSamples); }
+
+float AudioPlayer::AudioHandler(int nChannel,
+	float fGlobalTime, float fTimeStep, float fMixerSample,
+		const std::shared_ptr<AudioEngine::AudioSample>& pS
+)
+{
+	// Calculate sample position
+	if (!m_bPause)
+	{
+		m_pCPA.get()->m_fSamplePosition +=
+			(float)pS->wavHeader.nSamplesPerSec * fTimeStep;
+	}
+	else { goto linkExit; }
+
+	// If sample position is valid add to the mix
+	if (m_pCPA.get()->m_fSamplePosition < pS->m_nSamples)
+	{
+		fMixerSample += pS->
+			m_fSample[((long)round(m_pCPA.get()->m_fSamplePosition) * pS->m_nChannels) + nChannel];
+	}
+	else
+	{
+		m_pCPA.get()->m_fSamplePosition = 0.f;
+	} // Else sound has completed
+linkExit:
+	return(fMixerSample);
+}
+
+
 
 AudioPlayer::ActivePlayingAudio::ActivePlayingAudio(AUDIOID nAudioSampleID,
 	pAudioPlayer pAP) : AudioEngine::PlayingAudio(nAudioSampleID), m_pAP(pAP)
@@ -33,20 +74,7 @@ float AudioPlayer::ActivePlayingAudio::ProcessAudioSample(int nChannel,
 		const std::shared_ptr<AudioEngine::AudioSample>& pS
 )
 {
-	// Calculate sample position
-	if (!m_pAP->m_bPause)
-	{ m_fSamplePosition +=
-		(float)pS->wavHeader.nSamplesPerSec * fTimeStep;
-	}
-	else { goto linkExit; }
-	
-	// If sample position is valid add to the mix
-	if (m_fSamplePosition < pS->m_nSamples)
-	{ fMixerSample += pS->
-		m_fSample[((long)round(m_fSamplePosition) * pS->m_nChannels) + nChannel];
-	}
-	else
-	{ m_fSamplePosition = 0.f; } // Else sound has completed
-linkExit:
-	return(fMixerSample);
+	float fResult = m_pAP->AudioHandler
+		(nChannel, fGlobalTime, fTimeStep, fMixerSample, pS);
+	return(fResult);
 }

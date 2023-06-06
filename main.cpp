@@ -1,104 +1,36 @@
 #include "framework.h"
 
+#include "logger.h"
+
+#include "maindlg.h"
+#include "resource.h"
+
 #include "audio_engine.h"
 #include "audio_player.h"
 
-#include "console_api.h"
-#include "logger.h"
-
-#include <conio.h>
 using namespace std;
 
-// Global synthesizer variables
-atomic<float> fFrequencyOutput = 0.f;			// dominant output frequency of instrument, i.e. the note
-float fOctaveBaseFrequency = 3.f * 110.f;		// frequency of octave represented by keyboard
-float f12thRootOf2 = powf(2.f, 1.f / 12.f);		// assuming western 12 notes per ocatve
-
-// Function used by AudioEngine to generate sound waves
-// Returns amplitude (-1.0 to +1.0) as a function of time
-float MakeNoise(int nChannel,
-	float fGlobalTime, float fTimeStep)
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
-	float fOutput = sinf(fFrequencyOutput * 2.f * 3.14159f * fGlobalTime);
-	return(fOutput * 0.5f); // Master Volume
-}
-
-int wmain(int argc, wchar_t* argv[]) {
-	UNREFERENCED_PARAMETER(argc), UNREFERENCED_PARAMETER(argv);
+	UNREFERENCED_PARAMETER(hPrevInstance), UNREFERENCED_PARAMETER(lpCmdLine);
 	Logger::LoadLogLevel
 		(Logger::LogLevel::LOG_LVL_DEBUG);
 	Logger::ClearLog();
 
-	ConstructConsole(90, 30, L"[AudioEngine]-TEST-0",
-		10, 16, L"Consolas", L"C");
-
-	AudioEngine audio(&MakeNoise);
+	AudioEngine audio;
 	audio.CreateAudio();
 
-	const wchar_t* cSample[] = {
-		L"test_0.wav",
-		L"test_1.wav",
-		L"test_2.wav"
-	};
-	AUDIOID nSample[sizeof(cSample) / sizeof(const wchar_t*)] = { 0x0 };
+	MainDlg* mainDlg = new MainDlg(MAKEINTRESOURCE(IDD_MAIN_DIALOG), audio);
+	mainDlg->CreateDlg(hInstance, NULL), mainDlg->ShowDlg(nCmdShow);
 
-	for (int i = 0x0; i < sizeof(cSample) / sizeof(wchar_t*); i++) {
-		nSample[i] = audio.LoadAudioSample(cSample[i]);
-		if (nSample[i] == -(0x1)) {
-			Logger::LogAndShowMessage
-				(Logger::LogLevel::LOG_LVL_ERROR,
-					L"Failed to Load : " + (wstring)cSample[i]);
-			{ audio.DestroyAudio(); return(-0x1); }
-		}
-	}
-
-	AUDIOID nMusic = audio.
-		LoadAudioSample(L"resurrection.wav");
-	if (nMusic == -(0x1)) { Logger::LogAndShowMessage
-		(Logger::LogLevel::LOG_LVL_ERROR,
-			L"Failed to Load : resurrection.wav");
-		{ audio.DestroyAudio(); return(-0x1); }
-	}
-	AudioPlayer player(&audio, nMusic);
-
-	while (TRUE) {
-		if (_kbhit()) {
-			wint_t wSygn = _getwch();
-			if (wSygn >= L'1' &&
-				wSygn < L'1' + sizeof(cSample) / sizeof(wchar_t*)
-				)
-			{
-				size_t nSampleNumber = wSygn - L'1';
-				audio.PlayAudioSample(nSample[nSampleNumber]);
-				wcout <<
-					L'\r' << L"                                                                " << L'\r';
-				wcout <<
-					L"Sample[" << nSampleNumber << L"] : " << cSample[nSampleNumber];
-			}
-			else if (wSygn == L'\x20') {
-				player.PauseAudio();
-			}
-			else if (wSygn == L'\r') { break; }
-		}
-		bool bKeyPressed = false;
-		int nCurrentKey = -0x1;
-		for (int k = 0; k < 16; k++)
-			if (GetAsyncKeyState((unsigned char)("ZSXCFVGBNJMK\xbcL\xbe\xbf"[k])) & 0x8000) {
-				if (nCurrentKey != k && !bKeyPressed) {
-					fFrequencyOutput = fOctaveBaseFrequency * powf(f12thRootOf2, (float)k);
-					nCurrentKey = k;
-				}
-
-				bKeyPressed = true;
-			}
-		if (!bKeyPressed) {
-			if (nCurrentKey != -0x1)
-			{ nCurrentKey = -0x1; }
-			fFrequencyOutput = 0.f;
-		}
-	}
+	MSG msg = { 0x0 };
+	while (GetMessage(&msg, NULL, 0x0, 0x0) > 0x0)
+		if (!IsDialogMessage(mainDlg->GetDialogHWND(), &msg))
+		{ TranslateMessage(&msg), DispatchMessage(&msg); }
 
 	audio.DestroyAudio();
 
-	return(EXIT_SUCCESS);
+	return((int)msg.wParam);
 }

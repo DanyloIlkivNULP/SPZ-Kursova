@@ -18,6 +18,7 @@ Character Set -> Use Unicode. Thanks!
 // Файлы заголовков Windows
 #include <windows.h>
 #include <windowsx.h>
+#include <commctrl.h>
 #include <psapi.h>
 // Файлы заголовков среды выполнения C
 #include <stdlib.h>
