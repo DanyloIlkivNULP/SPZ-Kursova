@@ -1,10 +1,7 @@
 #include "audio_engine.h"
 
 #include "audio_sample.h"
-
 #include "playing_audio.h"
-
-#include "audio_player.h"
 
 #include "logger.h"
 
@@ -27,7 +24,7 @@ AudioEngine::~AudioEngine(void) {
 
 // Load a 16-bit WAVE file @ 44100Hz ONLY into memory. A sample ID
 // number is returned if successful, otherwise -1
-AudioEngine::AUDIOID AudioEngine::LoadAudioSample(std::wstring sWavFile) {
+AUDIOID AudioEngine::LoadAudioSample(std::wstring sWavFile) {
 	std::lock_guard<std::mutex>
 		lgProcessAudio(m_muxProcessAudio);
 
@@ -43,24 +40,6 @@ void AudioEngine::PlayAudioSample(AUDIOID ID) {
 
 	CreatePlayingAudio<PlayingAudio>(ID);
 }
-
-AudioEngine::PLAYERID AudioEngine::CreateAudioPlayer(AUDIOID ID) {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_muxProcessAudio);
-
-	std::shared_ptr<AudioPlayer> p = std::make_shared
-		<AudioPlayer>(ID, this);
-
-	listAudioPlayers.push_back(std::move(p));
-	return(listAudioPlayers.size());
-}
-void AudioEngine::DestroyAudioPlayer
-	(PLAYERID ID) { /*Code...*/ }
-
-void AudioEngine::AudioPlayerStart
-	(PLAYERID ID) { /*Code...*/ }
-void AudioEngine::AudioPlayerStop
-	(PLAYERID ID) { /*Code...*/ }
 
 // The audio system uses by default a specific wave format
 bool AudioEngine::CreateAudio(

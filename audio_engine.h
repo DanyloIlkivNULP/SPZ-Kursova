@@ -4,11 +4,14 @@
 
 #include "framework.h"
 
+class AudioPlayer;
+
+typedef signed int AUDIOID;
+typedef std::function
+	<float(int, float, float)> AUDIO_HANDLER;
+
 class AudioEngine {
-	typedef signed int AUDIOID, PLAYERID;
-	typedef std::function
-		<float(int, float, float)> AUDIO_HANDLER;
-	
+	friend class AudioPlayer;
 public:
 	AudioEngine(
 		AUDIO_HANDLER fSoundSample = nullptr,
@@ -21,14 +24,6 @@ public:
 	virtual AUDIOID LoadAudioSample(std::wstring sWavFile);
 	virtual void PlayAudioSample(AUDIOID ID);
 
-	virtual PLAYERID CreateAudioPlayer(AUDIOID ID);
-	virtual void
-		DestroyAudioPlayer(PLAYERID ID);
-
-	virtual void
-		AudioPlayerStart(PLAYERID ID);
-	virtual void
-		AudioPlayerStop(PLAYERID ID);
 
 
 	virtual bool CreateAudio(
@@ -95,13 +90,6 @@ protected:
 	std::list<std::shared_ptr<PlayingAudio>>
 		listActiveSamples;
 
-	// This class is used to control
-	// the playback of an audio sample
-	class AudioPlayer;
-
-	std::list<std::shared_ptr<AudioPlayer>>
-		listAudioPlayers;
-
 	virtual float GetMixerOutput(int nChannel,
 		float fGlobalTime, float fTimeStep);
 
@@ -111,16 +99,16 @@ protected:
 			<AudioSampleType>(sWavFile, std::forward<ArgumentTypes>(args)...);
 
 		if (a->m_bValid) {
-			vecAudioSamples.push_back(std::move(a));
+			vecAudioSamples.push_back(std::move((std::shared_ptr<AudioSample>)a));
 			return(vecAudioSamples.size());
 		}
 		else
 		{ return(-0x1); }
 	}
 	template<class CreatingPlayingAudioType, typename ...ArgumentTypes>
-	void CreatePlayingAudio(int id, ArgumentTypes&& ...args) {
+	void CreatePlayingAudio(AUDIOID ID, ArgumentTypes&& ...args) {
 		std::shared_ptr<CreatingPlayingAudioType> s = std::make_shared
-			<CreatingPlayingAudioType>(id, std::forward<ArgumentTypes>(args)...);
+			<CreatingPlayingAudioType>(ID, std::forward<ArgumentTypes>(args)...);
 		listActiveSamples.push_back(std::move(s));
 	}
 };

@@ -1,6 +1,7 @@
 #include "framework.h"
 
 #include "audio_engine.h"
+#include "audio_player.h"
 
 #include "console_api.h"
 #include "logger.h"
@@ -39,7 +40,7 @@ int wmain(int argc, wchar_t* argv[]) {
 		L"test_1.wav",
 		L"test_2.wav"
 	};
-	int nSample[sizeof(cSample) / sizeof(const wchar_t*)] = { 0x0 };
+	AUDIOID nSample[sizeof(cSample) / sizeof(const wchar_t*)] = { 0x0 };
 
 	for (int i = 0x0; i < sizeof(cSample) / sizeof(wchar_t*); i++) {
 		nSample[i] = audio.LoadAudioSample(cSample[i]);
@@ -47,9 +48,18 @@ int wmain(int argc, wchar_t* argv[]) {
 			Logger::LogAndShowMessage
 				(Logger::LogLevel::LOG_LVL_ERROR,
 					L"Failed to Load : " + (wstring)cSample[i]);
-			{ return(ERROR_INVALID_DATA); }
+			{ audio.DestroyAudio(); return(-0x1); }
 		}
 	}
+
+	AUDIOID nMusic = audio.
+		LoadAudioSample(L"resurrection.wav");
+	if (nMusic == -(0x1)) { Logger::LogAndShowMessage
+		(Logger::LogLevel::LOG_LVL_ERROR,
+			L"Failed to Load : resurrection.wav");
+		{ audio.DestroyAudio(); return(-0x1); }
+	}
+	AudioPlayer player(&audio, nMusic);
 
 	while (TRUE) {
 		if (_kbhit()) {
@@ -64,6 +74,9 @@ int wmain(int argc, wchar_t* argv[]) {
 					L'\r' << L"                                                                " << L'\r';
 				wcout <<
 					L"Sample[" << nSampleNumber << L"] : " << cSample[nSampleNumber];
+			}
+			else if (wSygn == L'\x20') {
+				player.PauseAudio();
 			}
 			else if (wSygn == L'\r') { break; }
 		}

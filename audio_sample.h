@@ -4,9 +4,13 @@
 
 #include "audio_engine.h"
 
+class AudioPlayer;
+
 class AudioEngine::AudioSample
 {
 	friend class AudioEngine;
+	friend class AudioPlayer;
+
 	bool m_bValid = false;
 public:
 	AudioSample(void); ~AudioSample(void);

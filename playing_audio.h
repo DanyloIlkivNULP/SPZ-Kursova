@@ -4,12 +4,14 @@
 
 #include "audio_engine.h"
 
+class AudioPlayer;
+
 class AudioEngine::AudioSample;
 
 class AudioEngine::PlayingAudio
 {
 	friend class AudioEngine;
-	AUDIOID m_nAudioSampleID = 0x0;
+	friend class AudioPlayer;
 public:
 	PlayingAudio
 		(AUDIOID nAudioSampleID = -(0x1));
@@ -19,6 +21,8 @@ public:
 	bool IsFinish(void) const;
 
 protected:
+	AUDIOID m_nAudioSampleID = 0x0;
+
 	float m_fSamplePosition = 0.f;
 	bool m_bFinish = false;
 
