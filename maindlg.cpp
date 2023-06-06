@@ -1,10 +1,15 @@
 #include "maindlg.h"
 #include "resource.h"
 
+#include "control_slider.h"
+
 #include "audio_engine.h"
 #include "audio_player.h"
 
 #include "logger.h"
+
+#define _TIMER_MAIN_ID_ (INT)0x0
+#define _TIMER_MAIN_ELAPSE_ (INT)128
 
 namespace sample {
 	const wchar_t* cSample[] = {
@@ -18,8 +23,8 @@ namespace sample {
 	AUDIOID nSample[sCnt] = { 0x0 };
 };
 
-MainDlg::MainDlg(LPWSTR dlgResName, AudioEngine& refAE) : m_refAE(refAE),
-	BaseDlgBox(dlgResName)
+MainDlg::MainDlg(LPWSTR dlgResName, std::wstring sWavFile, AudioEngine& refAE) :
+	m_sWavFile(sWavFile), m_refAE(refAE), BaseDlgBox(dlgResName)
 {
 	for (int i = 0x0; i < sizeof(sample::cSample) / sizeof(wchar_t*); i++) {
 		sample::nSample[i] = m_refAE.LoadAudioSample(sample::cSample[i]);
@@ -28,7 +33,7 @@ MainDlg::MainDlg(LPWSTR dlgResName, AudioEngine& refAE) : m_refAE(refAE),
 	}
 
 	AUDIOID nMusic = m_refAE.
-		LoadAudioSample(L"resurrection.wav");
+		LoadAudioSample(m_sWavFile);
 	if (nMusic == -(0x1))
 	{ m_refAE.DestroyAudio(); }
 
@@ -39,17 +44,12 @@ MainDlg::~MainDlg(void)
 { /*Code...*/ }
 
 bool MainDlg::OnUserCreate(void) {
-	m_conTrackBar.hWndTrack = GetDlgItem
-		(m_hWnd, IDC_SLIDER);
+	m_conSlider.pSlider = new
+		Slider(m_hWnd, IDC_SLIDER, { 0x0, 100 });
 
-	SendMessage(m_conTrackBar.hWndTrack, TBM_SETRANGE,
-		(WPARAM)TRUE, (LPARAM)MAKELONG(0x0, 100));
-
-	(void)SendMessage(m_conTrackBar.hWndTrack, TBM_SETPAGESIZE,
-		0x0, (LPARAM)0xA);
-
-	(void)SetTimer
-		(m_hWnd, 0x0, 0x1, NULL);
+	(void)SetTimer(m_hWnd,
+		_TIMER_MAIN_ID_, _TIMER_MAIN_ELAPSE_, NULL
+	);
 
 	return(true);
 }
@@ -74,17 +74,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		} break;
 		case ID_PAUSE: {
 			m_ap->PauseAudio();
-		} break;
 
-		case IDC_CURRENT_AUDIO_POSITION: {
-			/*LONG lPos = SendMessage(
-				m_conTrackBar.hWndTrack, TBM_GETPOS, 0x0, 0x0
-			);*/
-
-			LONG lPos = (LONG)roundf(m_ap->CurrentPositonAudio() * 100.f);
-
-			Logger::ShowMessage
-				(std::to_wstring(lPos).data(), L"[Range]");
 		} break;
 
 		default:
@@ -94,21 +84,19 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 	case WM_HSCROLL: {
 		HWND hWndTrack = (HWND)lParam;
-		if (m_conTrackBar.hWndTrack != hWndTrack) { break; }
+		if (m_conSlider.pSlider->GetHandle() != hWndTrack) { break; }
 
 		if (LOWORD(wParam) != SB_ENDSCROLL) { 
-			m_conTrackBar.lPos = SendMessage(
-				m_conTrackBar.hWndTrack, TBM_GETPOS, 0x0, 0x0
-			);
-			{ m_ap->PositonAudio(m_conTrackBar.lPos / 100.f); }
+			DWORD dwPos = m_conSlider.pSlider->GetPos();
+			{ m_ap->PositonAudio(dwPos / 100.f); }
 
-			m_conTrackBar.bHold = 0x1;
-			if (m_conTrackBar.lPos == 100)
-			{ m_conTrackBar.lPos = 0x0;
+			m_conSlider.bHold = 0x1;
+			if (dwPos == 100)
+			{ m_conSlider.pSlider->SetPos(0x0);
 				m_ap.get()->PauseAudio(false);
 			}
 		}
-		else { m_conTrackBar.bHold = 0x0; }
+		else { m_conSlider.bHold = 0x0; }
 	} break;
 	case WM_VSCROLL: {
 		/*Code...*/
@@ -116,16 +104,26 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 	case WM_TIMER: {
 		INT nID = (INT)wParam;
-		switch (nID) {
-		case 0x0: {
-			if (m_conTrackBar.bHold) { break; }
-			m_conTrackBar.lPos = (LONG)
-				(m_ap.get()->CurrentPositonAudio() * 100.f);
-			SendMessage(
-				m_conTrackBar.hWndTrack, TBM_SETPOS,
-				(WPARAM)TRUE, (LPARAM)(m_conTrackBar.lPos)
-			);
+		switch (nID)
+		{
+
+		case _TIMER_MAIN_ID_: {
+			HWND hStaticText = GetDlgItem
+				(m_hWnd, IDC_DURATION);
+
+			size_t sElapsedSec = (size_t)roundf(m_ap.get()->CurrentPositonAudio() *
+				(m_ap.get()->NumOfSamples() / m_ap.get()->NumOfSamplesPerSec()));
+
+			WCHAR wcDur[256] = { 0x0 };
+			swprintf_s(wcDur, L"%02d:%02d:%02d",
+				sElapsedSec / (60 * 60), sElapsedSec / 60, sElapsedSec % 60);
+			SetWindowText(hStaticText, wcDur);
+
+			if (m_conSlider.bHold) { break; }
+			m_conSlider.pSlider->SetPos
+				((DWORD)(m_ap.get()->CurrentPositonAudio() * 100.f));
 		}
+
 		default:
 			break;
 		}

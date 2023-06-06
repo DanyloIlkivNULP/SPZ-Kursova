@@ -14,7 +14,27 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
-	UNREFERENCED_PARAMETER(hPrevInstance), UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(hPrevInstance);
+
+	INITCOMMONCONTROLSEX icc = {
+		sizeof(icc), ICC_WIN95_CLASSES
+	};
+	if (!InitCommonControlsEx(&icc))
+	{ Logger::ShowLastError
+		(L"InitCommonControlsEx(&icc)"); return(-0x1);
+	}
+
+	LPWSTR* szArglist;
+	signed int nArgs;
+
+	szArglist = CommandLineToArgvW
+		(GetCommandLineW(), &nArgs);
+	if (szArglist == NULL)
+	{ Logger::ShowLastError
+		(L"CommandLineToArgvW - Failed!"); return(-0x1);
+	}
+	if (nArgs == 0x1) { return(-0x1); }
+
 	Logger::LoadLogLevel
 		(Logger::LogLevel::LOG_LVL_DEBUG);
 	Logger::ClearLog();
@@ -22,7 +42,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	AudioEngine audio;
 	audio.CreateAudio();
 
-	MainDlg* mainDlg = new MainDlg(MAKEINTRESOURCE(IDD_MAIN_DIALOG), audio);
+	MainDlg* mainDlg = new
+		MainDlg(MAKEINTRESOURCE(IDD_MAIN_DIALOG), szArglist[0x1], audio);
 	mainDlg->CreateDlg(hInstance, NULL), mainDlg->ShowDlg(nCmdShow);
 
 	MSG msg = { 0x0 };
@@ -32,5 +53,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	audio.DestroyAudio();
 
+	LocalFree(szArglist);
 	return((int)msg.wParam);
 }

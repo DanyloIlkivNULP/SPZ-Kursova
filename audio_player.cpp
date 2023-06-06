@@ -15,7 +15,11 @@ AudioPlayer::AudioPlayer(pAudioEngine pAE,
 		<ActivePlayingAudio>(nAudioSampleID, this);
 	m_pCPA = m_pAE->listActiveSamples.back();
 }
-AudioPlayer::~AudioPlayer(void) { /*Code...*/ }
+AudioPlayer::~AudioPlayer(void) {
+	std::lock_guard<std::mutex>
+		lgProcessAudio(m_pAE->m_muxProcessAudio);
+	m_pCPA.get()->m_bFinish = true;
+}
 
 void AudioPlayer::PauseAudio(void) {
 	std::lock_guard<std::mutex>
@@ -36,6 +40,14 @@ void AudioPlayer::PositonAudio(float fSamplePosition) {
 
 float AudioPlayer::CurrentPositonAudio(void) const
 { return(m_pCPA.get()->m_fSamplePosition / m_pAS.get()->m_nSamples); }
+
+DWORD AudioPlayer::NumOfSamples(void) const
+{ return(m_pAS.get()->m_nSamples); }
+
+DWORD AudioPlayer::NumOfSamplesPerSec(void) const
+{ return(m_pAS.get()->wavHeader.nSamplesPerSec); }
+
+
 
 float AudioPlayer::AudioHandler(int nChannel,
 	float fGlobalTime, float fTimeStep, float fMixerSample,
@@ -80,7 +92,11 @@ float AudioPlayer::ActivePlayingAudio::ProcessAudioSample(int nChannel,
 		const std::shared_ptr<AudioEngine::AudioSample>& pS
 )
 {
-	float fResult = m_pAP->AudioHandler
+	float fResult = 0.f; 
+	if (m_bFinish) { goto linkExit; }
+
+	fResult = m_pAP->AudioHandler
 		(nChannel, fGlobalTime, fTimeStep, fMixerSample, pS);
+linkExit:
 	return(fResult);
 }

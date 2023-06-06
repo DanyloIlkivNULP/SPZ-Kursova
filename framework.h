@@ -5,6 +5,11 @@
 #error Error! :: Please use the "C++"
 #endif
 
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+	name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+	processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"" \
+)
+
 #pragma comment(lib, "winmm.lib")
 
 #ifndef UNICODE
@@ -18,7 +23,10 @@ Character Set -> Use Unicode. Thanks!
 // Файлы заголовков Windows
 #include <windows.h>
 #include <windowsx.h>
+
 #include <commctrl.h>
+#pragma comment(lib, "comctl32.lib")
+
 #include <psapi.h>
 // Файлы заголовков среды выполнения C
 #include <stdlib.h>

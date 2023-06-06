@@ -4,13 +4,18 @@
 
 AudioEngine::AudioSample::AudioSample(void)
 { /*Code...*/ }
-AudioEngine::AudioSample::~AudioSample(void)
-{ /*Code...*/ }
 
 AudioEngine::AudioSample::AudioSample(std::wstring sWavFile) {
 	if(!LoadAudioSample(sWavFile))
 	{ Logger::ShowMessage(L"LoadAudioSample - Failed!",
 		L"Error!");
+	}
+}
+
+AudioEngine::AudioSample::~AudioSample(void) {
+	if (m_fSample)
+	{ delete[] m_fSample,
+		m_fSample = nullptr;
 	}
 }
 

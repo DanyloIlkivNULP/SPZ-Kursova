@@ -8,6 +8,8 @@ class AudioEngine;
 
 class AudioPlayer;
 
+class Slider;
+
 class MainDlg : 
 	public BaseDlgBox
 {
@@ -15,9 +17,12 @@ class MainDlg :
 
 	std::unique_ptr
 		<AudioPlayer> m_ap = nullptr;
+
+	std::wstring m_sWavFile;
 public:
-	MainDlg(LPWSTR dlgResName, AudioEngine& refAE);
-	virtual ~MainDlg(void);
+	MainDlg(LPWSTR dlgResName,
+		std::wstring sWavFile, AudioEngine& refAE);
+	~MainDlg(void);
 private:
 	LRESULT CALLBACK HandleMessage(UINT _In_ uMsg,
 		WPARAM _In_ wParam, LPARAM _In_ lParam);
@@ -25,11 +30,9 @@ private:
 	bool OnUserCreate(void); bool OnUserDestroy(void);
 
 	struct {
-		HWND hWndTrack = NULL;
-		LONG lPos = 0x0;
-
+		Slider* pSlider = nullptr;
 		bool bHold = 0x0;
-	} m_conTrackBar;
+	} m_conSlider;
 };
 
 #endif //_MAINDLG_

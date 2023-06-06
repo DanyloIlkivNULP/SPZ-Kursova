@@ -17,6 +17,8 @@ class AudioPlayer {
 	class ActivePlayingAudio :
 		public AudioEngine::PlayingAudio
 	{
+		friend class AudioPlayer;
+
 		typedef AudioPlayer*
 			pAudioPlayer;
 	public:
@@ -38,14 +40,22 @@ public:
 		AUDIOID nAudioSampleID);
 	~AudioPlayer(void);
 
-	void PauseAudio(void);
+	AudioPlayer(const AudioPlayer& ae) = delete;
+	AudioPlayer& operator=(const AudioPlayer& ae) = delete;
+
 	void PauseAudio
 		(bool bState);
+	void PauseAudio(void);
 
 	void PositonAudio
 		(float fSamplePosition);
+	float CurrentPositonAudio
+		(void) const;
 
-	float CurrentPositonAudio(void) const;
+	DWORD NumOfSamples
+		(void) const;
+	DWORD NumOfSamplesPerSec
+		(void) const;
 
 protected:
 	pAudioEngine m_pAE = nullptr;
