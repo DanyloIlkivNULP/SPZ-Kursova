@@ -3,8 +3,8 @@
 // Используется resource.rc
 //
 #define IDD_MAIN_DIALOG                 101
-#define ID_PLAY_RANDOM                  1001
-#define ID_PAUSE                        1002
+#define ID_FILE                         1001
+#define ID_PLAY                         1002
 #define IDC_AUDIO_TRACK                 1003
 #define IDC_STATIC_0                    1004
 #define IDC_STATIC_1                    1005

@@ -6,10 +6,6 @@
 
 class AudioPlayer;
 
-typedef signed int AUDIOID;
-typedef std::function
-	<float(int, float, float)> AUDIO_HANDLER;
-
 class AudioEngine {
 	friend class AudioPlayer;
 public:
@@ -21,7 +17,7 @@ public:
 	AudioEngine(const AudioEngine& ae) = delete;
 	AudioEngine& operator=(const AudioEngine& ae) = delete;
 
-	virtual AUDIOID LoadAudioSample(std::wstring sWavFile);
+	virtual AUDIOID LoadAudioSample(const wchar_t* wcWavFile);
 	virtual void PlayAudioSample(AUDIOID ID);
 
 
@@ -96,9 +92,9 @@ protected:
 		float fGlobalTime, float fTimeStep);
 
 	template<class AudioSampleType, typename ...ArgumentTypes>
-	AUDIOID LoadAudioSample(std::wstring sWavFile, ArgumentTypes&& ...args) {
+	AUDIOID LoadAudioSample(const wchar_t* wcWavFile, ArgumentTypes&& ...args) {
 		std::shared_ptr<AudioSampleType> a = std::make_shared
-			<AudioSampleType>(sWavFile, std::forward<ArgumentTypes>(args)...);
+			<AudioSampleType>(wcWavFile, std::forward<ArgumentTypes>(args)...);
 
 		if (a->m_bValid) {
 			vecAudioSamples.push_back(std::move((std::shared_ptr<AudioSample>)a));

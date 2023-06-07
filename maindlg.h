@@ -7,8 +7,11 @@
 class AudioEngine;
 class AudioPlayer;
 
+class Button;
 class StaticText;
 class Slider;
+
+#define _STRING_SIZE_ (size_t)256
 
 class MainDlg : 
 	public BaseDlgBox
@@ -18,16 +21,25 @@ class MainDlg :
 	std::unique_ptr
 		<AudioPlayer> m_ap = nullptr;
 
-	std::wstring m_sWavFile;
+	wchar_t* m_wcWavFile = NULL;
+
+	bool NewAudioPlayer
+		(AUDIOID nMusicID);
+
+	bool WavFileName
+		(wchar_t wcFileName[_STRING_SIZE_]);
 public:
 	MainDlg(LPWSTR dlgResName,
-		std::wstring sWavFile, AudioEngine& refAE);
+		const wchar_t* wcWavFile, AudioEngine& refAE);
 	~MainDlg(void);
 private:
 	LRESULT CALLBACK HandleMessage(UINT _In_ uMsg,
 		WPARAM _In_ wParam, LPARAM _In_ lParam);
 
 	bool OnUserCreate(void); bool OnUserDestroy(void);
+
+	std::unique_ptr
+		<Button> m_pPlay = nullptr;
 
 	struct {
 		std::unique_ptr<StaticText>
@@ -41,9 +53,8 @@ private:
 		bool bHold = 0x0;
 	} m_conAudioTrack, m_conVolume;
 
-#define _DURATION_SIZE_ (size_t)256
-	void CalcDuration
-		(wchar_t wcDuration[_DURATION_SIZE_]);
+	void AudioDuration
+		(wchar_t wcAudioDuration[_STRING_SIZE_]);
 };
 
 #endif //_MAINDLG_

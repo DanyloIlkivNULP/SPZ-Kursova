@@ -46,9 +46,16 @@ public:
 	const wchar_t*
 		FileName(void) const;
 
-	void PauseAudio
+	enum {
+		STATE_PLAY = 0x0,
+		STATE_STOP = 0x0
+	};
+
+	void ChangeStateAudio
 		(bool bState);
-	void PauseAudio(void);
+	void SwapStateAudio(void);
+	bool CurrentStateAudio
+		(void) const;
 
 	void VolumeAudio
 		(float fVolume);
@@ -72,13 +79,15 @@ protected:
 	std::shared_ptr
 		<AudioEngine::PlayingAudio> m_pCPA = nullptr;
 
-	std::atomic<bool> m_bPause = false;
+	std::atomic<bool> m_bState = 0x0;
 	std::atomic<float> m_fVolume = 1.f;
 
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
 		const std::shared_ptr<AudioEngine::AudioSample>& pS
 	);
+
+	virtual float Clip(float& f);
 };
 
 #endif // _AUDIO_PLAYER_H_

@@ -6,13 +6,13 @@ AudioEngine::AudioSample::AudioSample(void)
 { /*Code...*/ }
 
 AudioEngine::AudioSample::AudioSample
-	(std::wstring sWavFile) : m_sWavFile(sWavFile)
+	(const wchar_t* wcWavFile) : m_wcWavFile((wchar_t*)wcWavFile)
 {
-	if(!LoadAudioSample(m_sWavFile))
-	{ Logger::LogAndShowMessage
-		(Logger::LogLevel::LOG_LVL_ERROR,
-			L"Failed to Load : [" + m_sWavFile + L"]");
-	}
+	if (m_wcWavFile == NULL)
+	{ m_bValid = false; }
+
+	m_bValid = LoadAudioSample
+		(m_wcWavFile);
 }
 
 AudioEngine::AudioSample::~AudioSample(void) {
@@ -23,12 +23,12 @@ AudioEngine::AudioSample::~AudioSample(void) {
 }
 
 const wchar_t* AudioEngine::AudioSample::FileName(void) const
-{ return(m_sWavFile.data()); }
+{ return(m_wcWavFile); }
 
-bool AudioEngine::AudioSample::LoadAudioSample(std::wstring sWavFile) {
+bool AudioEngine::AudioSample::LoadAudioSample(const wchar_t* wcWavFile) {
 	// Get a path to Wav file
 	WCHAR wcFullPath[MAX_PATH]{};
-	GetFullPathName(sWavFile.data(),
+	GetFullPathName(wcWavFile,
 		MAX_PATH, wcFullPath, NULL);
 
 	// Load Wav file and convert to float format
@@ -85,7 +85,6 @@ bool AudioEngine::AudioSample::LoadAudioSample(std::wstring sWavFile) {
 
 	// All done, flag sound as valid
 	std::fclose(f);
-	m_bValid = true;
 
 	return(true);
 }

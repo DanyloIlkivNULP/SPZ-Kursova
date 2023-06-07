@@ -29,11 +29,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	szArglist = CommandLineToArgvW
 		(GetCommandLineW(), &nArgs);
+
+	wchar_t* wcWavFile = NULL;
 	if (szArglist == NULL)
 	{ Logger::ShowLastError
 		(L"CommandLineToArgvW - Failed!"); return(-0x1);
-	}
-	if (nArgs == 0x1) { return(-0x1); }
+	} else if (nArgs > 0x1)
+	{ wcWavFile = szArglist[0x1]; }
 
 	Logger::LoadLogLevel
 		(Logger::LogLevel::LOG_LVL_DEBUG);
@@ -43,7 +45,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	audio.CreateAudio();
 
 	MainDlg* mainDlg = new
-		MainDlg(MAKEINTRESOURCE(IDD_MAIN_DIALOG), szArglist[0x1], audio);
+		MainDlg(MAKEINTRESOURCE(IDD_MAIN_DIALOG), wcWavFile, audio);
 	mainDlg->CreateDlg(hInstance, NULL), mainDlg->ShowDlg(nCmdShow);
 
 	MSG msg = { 0x0 };

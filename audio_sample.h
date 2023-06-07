@@ -16,7 +16,7 @@ class AudioEngine::AudioSample
 public:
 	AudioSample(void); ~AudioSample(void);
 
-	AudioSample(std::wstring sWavFile);
+	AudioSample(const wchar_t* wcWavFile);
 
 	const wchar_t*
 		FileName(void) const;
@@ -28,10 +28,10 @@ protected:
 	long m_nSamples = 0x0;
 	int m_nChannels = 0x0;
 
-	std::wstring m_sWavFile;
+	wchar_t* m_wcWavFile = NULL;
 
 	virtual bool LoadAudioSample
-		(std::wstring sWavFile);
+		(const wchar_t* wcWavFile);
 };
 
 #endif //_AUDIO_SAMPLE_H_

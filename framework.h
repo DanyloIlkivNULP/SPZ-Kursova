@@ -52,4 +52,8 @@ Character Set -> Use Unicode. Thanks!
 #define LOG_FILE_NAME L".AudioEngineLog.txt"
 #endif
 
+typedef signed int AUDIOID;
+typedef std::function
+	<float(int, float, float)> AUDIO_HANDLER;
+
 #endif //_FRAMEWORK_H_

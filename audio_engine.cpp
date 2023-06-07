@@ -24,12 +24,12 @@ AudioEngine::~AudioEngine(void) {
 
 // Load a 16-bit WAVE file @ 44100Hz ONLY into memory. A sample ID
 // number is returned if successful, otherwise -1
-AUDIOID AudioEngine::LoadAudioSample(std::wstring sWavFile) {
+AUDIOID AudioEngine::LoadAudioSample(const wchar_t* wcWavFile) {
 	std::lock_guard<std::mutex>
 		lgProcessAudio(m_muxProcessAudio);
 
 	AUDIOID idResult = -(0x1);
-	idResult = LoadAudioSample<AudioSample>(sWavFile);
+	idResult = LoadAudioSample<AudioSample>(wcWavFile);
 	return(idResult);
 }
 

@@ -23,26 +23,22 @@ const wchar_t*
 	AudioPlayer::FileName(void) const
 { return(m_pAS.get()->FileName()); }
 
-void AudioPlayer::PauseAudio(void)
-{ m_bPause = !m_bPause; }
-void AudioPlayer::PauseAudio(bool bState)
-{ m_bPause = bState; }
+void AudioPlayer::SwapStateAudio(void)
+{ m_bState = !m_bState; }
+void AudioPlayer::ChangeStateAudio(bool bState)
+{ m_bState = bState; }
+bool AudioPlayer::CurrentStateAudio(void) const
+{ return(m_bState); }
 
 void AudioPlayer::VolumeAudio(float fVolume) {
-	if (fVolume >= 0.f)
-	{ fVolume = fmin(fVolume, 1.f); }
-	else
-	{ fVolume = fmax(fVolume, 0.f); }
+	fVolume = Clip(fVolume);
 	m_fVolume.store(fVolume);
 }
 float AudioPlayer::CurrentVolume(void) const
 { return(m_fVolume); }
 
 void AudioPlayer::PositonAudio(float fSamplePosition) {
-	if (fSamplePosition >= 0.f)
-	{ fSamplePosition = fmin(fSamplePosition, 1.f); }
-	else
-	{ fSamplePosition = fmax(fSamplePosition, 0.f); }
+	fSamplePosition = Clip(fSamplePosition);
 	m_pCPA.get()->m_fSamplePosition = m_pAS.get()->
 		m_nSamples * fSamplePosition;
 }
@@ -64,7 +60,7 @@ float AudioPlayer::AudioHandler(int nChannel,
 )
 {
 	// Calculate sample position
-	if (!m_bPause) {
+	if (m_bState != STATE_PLAY) {
 		m_pCPA.get()->m_fSamplePosition.store(m_pCPA.get()->m_fSamplePosition.load() + 
 			(float)pS->wavHeader.nSamplesPerSec * fTimeStep
 		);
@@ -78,7 +74,7 @@ float AudioPlayer::AudioHandler(int nChannel,
 		) * m_fVolume.load();
 	}
 	else {
-		m_bPause = true;
+		m_bState = STATE_STOP;
 		m_pCPA.get()->m_fSamplePosition = 0.f;
 	} // Else sound has completed
 	return(fMixerSample);
@@ -106,4 +102,12 @@ float AudioPlayer::ActivePlayingAudio::ProcessAudioSample(int nChannel,
 		(nChannel, fGlobalTime, fTimeStep, fMixerSample, pS);
 linkExit:
 	return(fResult);
+}
+
+float AudioPlayer::Clip(float& f) {
+	if (f >= 0.f)
+	{ f = fmin(f, 1.f); }
+	else
+	{ f = fmax(f, 0.f); }
+	return(f);
 }
