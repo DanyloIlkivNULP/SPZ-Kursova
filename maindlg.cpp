@@ -30,13 +30,13 @@ MainDlg::MainDlg(LPWSTR dlgResName, std::wstring sWavFile, AudioEngine& refAE) :
 	for (int i = 0x0; i < sizeof(sample::cSample) / sizeof(wchar_t*); i++) {
 		sample::nSample[i] = m_refAE.LoadAudioSample(sample::cSample[i]);
 		if (sample::nSample[i] == -(0x1))
-		{ m_refAE.DestroyAudio(); }
+		{ m_refAE.DestroyAudio(); exit(-0x1); }
 	}
 
 	AUDIOID nMusic = m_refAE.
 		LoadAudioSample(m_sWavFile);
 	if (nMusic == -(0x1))
-	{ m_refAE.DestroyAudio(); }
+	{ m_refAE.DestroyAudio(); exit(-0x1); }
 
 	m_ap = std::make_unique
 		<AudioPlayer>(&m_refAE, nMusic);
@@ -95,7 +95,9 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 	case WM_HSCROLL: {
 		HWND hWndTrack = (HWND)lParam;
 		if (hWndTrack == m_conAudioTrack.pSlider->GetHandle())
-			if (LOWORD(wParam) != SB_ENDSCROLL) {
+			if (LOWORD(wParam) != SB_ENDSCROLL &&
+				LOWORD(wParam) != SB_THUMBPOSITION)
+			{
 				DWORD dwPos = m_conAudioTrack.pSlider->GetPos();
 				{ m_ap->PositonAudio(dwPos / 100.f); }
 

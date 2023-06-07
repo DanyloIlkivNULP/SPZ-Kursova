@@ -8,9 +8,10 @@ AudioEngine::AudioSample::AudioSample(void)
 AudioEngine::AudioSample::AudioSample
 	(std::wstring sWavFile) : m_sWavFile(sWavFile)
 {
-	if(!LoadAudioSample(sWavFile))
-	{ Logger::ShowMessage(L"LoadAudioSample - Failed!",
-		L"Error!");
+	if(!LoadAudioSample(m_sWavFile))
+	{ Logger::LogAndShowMessage
+		(Logger::LogLevel::LOG_LVL_ERROR,
+			L"Failed to Load : [" + m_sWavFile + L"]");
 	}
 }
 
@@ -25,9 +26,14 @@ const wchar_t* AudioEngine::AudioSample::FileName(void) const
 { return(m_sWavFile.data()); }
 
 bool AudioEngine::AudioSample::LoadAudioSample(std::wstring sWavFile) {
+	// Get a path to Wav file
+	WCHAR wcFullPath[MAX_PATH]{};
+	GetFullPathName(sWavFile.data(),
+		MAX_PATH, wcFullPath, NULL);
+
 	// Load Wav file and convert to float format
 	FILE* f = nullptr;
-	_wfopen_s(&f, sWavFile.c_str(), L"rb");
+	_wfopen_s(&f, wcFullPath, L"rb");
 	if (f == nullptr) { return(false); }
 
 	char dump[0x4] = { 0x0 };

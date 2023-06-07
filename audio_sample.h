@@ -2,6 +2,7 @@
 #ifndef _AUDIO_SAMPLE_H_
 #define _AUDIO_SAMPLE_H_
 
+#include "framework.h"
 #include "audio_engine.h"
 
 class AudioPlayer;

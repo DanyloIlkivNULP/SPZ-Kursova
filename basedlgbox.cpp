@@ -26,7 +26,7 @@ BOOL BaseDlgBox::CreateDlg
 	SetWindowLongPtr(m_hWnd, GWLP_USERDATA,
 		reinterpret_cast<LONG_PTR>(this));
 
-	if(!OnUserCreate()) { (void)Logger::LogMessage
+	if(OnUserCreate()) { (void)Logger::LogMessage
 		(Logger::LogLevel::LOG_LVL_INFO,
 			L"[Function] : OnUserCreate" L" - Success!\t[File] : " __FILE__);
 	}
@@ -50,7 +50,7 @@ BOOL BaseDlgBox::DestroyDlg(int nExitCode) {
 		reinterpret_cast<LONG_PTR>(nullptr));
 	m_hWnd = NULL;
 
-	if(!OnUserDestroy()) { (void)Logger::LogMessage
+	if(OnUserDestroy()) { (void)Logger::LogMessage
 		(Logger::LogLevel::LOG_LVL_INFO,
 			L"[Function] : OnUserDestroy" L" - Success!\t[File] : " __FILE__);
 	}
