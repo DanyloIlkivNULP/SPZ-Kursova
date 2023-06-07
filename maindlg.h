@@ -5,7 +5,6 @@
 #include "basedlgbox.h"
 
 class AudioEngine;
-class AudioPlayer;
 
 class Button;
 class StaticText;
@@ -13,13 +12,15 @@ class Slider;
 
 #define _STRING_SIZE_ (size_t)256
 
+class MainAudioPlayer;
+
 class MainDlg : 
 	public BaseDlgBox
 {
 	AudioEngine& m_refAE;
 
 	std::unique_ptr
-		<AudioPlayer> m_ap = nullptr;
+		<MainAudioPlayer> m_ap = nullptr;
 
 	wchar_t* m_wcWavFile = NULL;
 

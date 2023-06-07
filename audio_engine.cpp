@@ -231,8 +231,8 @@ float AudioEngine::GetMixerOutput(int nChannel, float fGlobalTime, float fTimeSt
 		}
 
 		// If sounds have completed then remove them
-		list.remove_if([](const std::shared_ptr<PlayingAudio>& s)
-			{ return(s->IsFinish()); }
+		list.remove_if([](std::shared_ptr<PlayingAudio>& s)
+			{ return(s.get()->m_bFinish.load()); }
 		);
 	}; fProcessAudio(listActiveSamples);
 

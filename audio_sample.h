@@ -15,21 +15,18 @@ class AudioEngine::AudioSample
 	bool m_bValid = false;
 public:
 	AudioSample(void); ~AudioSample(void);
+	AudioSample(const wchar_t*
+		wcWavFile);
 
-	AudioSample(const wchar_t* wcWavFile);
-
-	const wchar_t*
-		FileName(void) const;
-
-protected:
 	WAVEFORMATEX wavHeader = { 0x0 };
 
 	float* m_fSample = nullptr;
 	long m_nSamples = 0x0;
 	int m_nChannels = 0x0;
 
-	wchar_t* m_wcWavFile = NULL;
+	const wchar_t* m_wcWavFile = NULL;
 
+protected:
 	virtual bool LoadAudioSample
 		(const wchar_t* wcWavFile);
 };

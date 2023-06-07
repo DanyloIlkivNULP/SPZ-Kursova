@@ -15,16 +15,12 @@ AudioEngine::AudioSample::AudioSample
 	m_bValid = LoadAudioSample
 		(m_wcWavFile);
 }
-
 AudioEngine::AudioSample::~AudioSample(void) {
 	if (m_fSample)
 	{ delete[] m_fSample,
 		m_fSample = nullptr;
 	}
 }
-
-const wchar_t* AudioEngine::AudioSample::FileName(void) const
-{ return(m_wcWavFile); }
 
 bool AudioEngine::AudioSample::LoadAudioSample(const wchar_t* wcWavFile) {
 	// Get a path to Wav file

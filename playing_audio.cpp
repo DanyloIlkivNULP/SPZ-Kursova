@@ -13,8 +13,6 @@ AudioEngine::PlayingAudio::~PlayingAudio(void)
 
 AUDIOID AudioEngine::PlayingAudio::AudioSampleID(void) const
 { return(m_nAudioSampleID); }
-bool AudioEngine::PlayingAudio::IsFinish(void) const
-{ return(m_bFinish); }
 
 float AudioEngine::PlayingAudio::ProcessAudioSample(int nChannel,
 	float fGlobalTime, float fTimeStep, float fMixerSample,

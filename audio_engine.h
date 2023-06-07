@@ -29,9 +29,15 @@ public:
 	);
 	virtual bool DestroyAudio(void);
 
-
-
 	float GetGlobalTime(void) const;
+
+	// This class holds loaded sound sample in memory
+	class AudioSample;
+
+	// This class represents a sound that is currently playing. It only
+	// holds the sound ID and where this instance of it is up to for its
+	// current playback
+	class PlayingAudio;
 
 private:
 	void waveOutProc(HWAVEOUT hWaveOut,
@@ -74,17 +80,11 @@ protected:
 		m_fUserSoundSample = nullptr,
 		m_fUserSoundFilter = nullptr;
 
-	class AudioSample;
-
 	// This vector holds all loaded sound samples in memory
 	std::vector<std::shared_ptr<AudioSample>>
 		vecAudioSamples;
 
-	// This class represents a sound that is currently playing. It only
-	// holds the sound ID and where this instance of it is up to for its
-	// current playback
-	class PlayingAudio;
-
+	// This list holds all sound that is currently playing
 	std::list<std::shared_ptr<PlayingAudio>>
 		listActiveSamples;
 

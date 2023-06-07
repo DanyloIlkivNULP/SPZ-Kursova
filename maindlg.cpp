@@ -6,7 +6,7 @@
 #include "control_slider.h"
 
 #include "audio_engine.h"
-#include "audio_player.h"
+#include "main_audio_player.h"
 
 #include "logger.h"
 
@@ -55,8 +55,8 @@ bool MainDlg::OnUserDestroy(void) { return(true); }
 bool MainDlg::NewAudioPlayer(AUDIOID nMusicID) {
 	bool bResult = 0x0;
 	if (m_ap.get()) { bResult = 0x1; }
-	std::unique_ptr<AudioPlayer> p = std::make_unique
-		<AudioPlayer>(&m_refAE, nMusicID);
+	std::unique_ptr<MainAudioPlayer> p = std::make_unique
+		<MainAudioPlayer>(&m_refAE, nMusicID);
 	m_ap.swap(p);
 
 	m_conStaticText.pFileName.get()->
@@ -102,7 +102,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			if (m_ap.get()) {
 				m_ap.get()->SwapStateAudio();
 				if (m_ap.get()->CurrentStateAudio() !=
-					AudioPlayer::STATE_PLAY
+					MainAudioPlayer::STATE_PLAY
 				)
 				{ m_pPlay.get()->SetText(L"Pause"); }
 				else {
@@ -132,7 +132,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				m_bHold = 0x1;
 				if (dwPos == m_conSlider.pAudioTrack.get()->GetRange())
 				{ m_conSlider.pAudioTrack.get()->SetPos(0x0);
-					m_ap.get()->ChangeStateAudio(AudioPlayer::STATE_STOP);
+					m_ap.get()->ChangeStateAudio(MainAudioPlayer::STATE_STOP);
 				}
 
 				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };

@@ -19,13 +19,14 @@ public:
 		(AUDIOID nAudioSampleID = -(0x1));
 	~PlayingAudio(void);
 
+	std::atomic<double>
+		m_dSamplePosition = 0.0;
+	std::atomic<bool>
+		m_bFinish = false;
+
 	AUDIOID AudioSampleID(void) const;
-	bool IsFinish(void) const;
 
 protected:
-	std::atomic<double> m_dSamplePosition = 0.0;
-	std::atomic<bool> m_bFinish = false;
-
 	virtual float ProcessAudioSample(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
 		const std::shared_ptr<AudioEngine::AudioSample>& pS
