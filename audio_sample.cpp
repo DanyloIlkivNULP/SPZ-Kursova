@@ -9,8 +9,9 @@ AudioEngine::AudioSample::AudioSample
 	(const wchar_t* wcWavFile) : m_wcWavFile((wchar_t*)wcWavFile)
 {
 	if (m_wcWavFile == NULL)
-	{ m_bValid = false; }
-
+	{ m_bValid = false;
+		{ return; }
+	}
 	m_bValid = LoadAudioSample
 		(m_wcWavFile);
 }

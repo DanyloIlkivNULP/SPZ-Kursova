@@ -135,7 +135,17 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 					m_ap.get()->ChangeStateAudio(AudioPlayer::STATE_STOP);
 				}
 
-				WCHAR wcDur[_STRING_SIZE_] = { 0x0 }; AudioDuration(wcDur);
+				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };
+
+				double dCurrentPositionAudio = m_ap.get()->
+					CurrentPositonAudio();
+				float fNumOfSamples = (float)m_ap.get()->
+					NumOfSamples();
+				float fNumOfSamplesPerSec = (float)m_ap.get()->
+					NumOfSamplesPerSec();
+
+				AudioDuration(wcDur,
+					dCurrentPositionAudio, fNumOfSamples, fNumOfSamplesPerSec);
 				m_conStaticText.pDuration.get()->SetText(wcDur);
 			}
 			else { m_bHold = 0x0; }
@@ -180,8 +190,20 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		{
 
 		case _TIMER_MAIN_ID_: {
-			WCHAR wcDur[_STRING_SIZE_] = { 0x0 }; AudioDuration(wcDur);
-			m_conStaticText.pDuration.get()->SetText(wcDur);
+			if (m_ap.get()) {
+				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };
+
+				double dCurrentPositionAudio = m_ap.get()->
+					CurrentPositonAudio();
+				float fNumOfSamples = (float)m_ap.get()->
+					NumOfSamples();
+				float fNumOfSamplesPerSec = (float)m_ap.get()->
+					NumOfSamplesPerSec();
+				
+				AudioDuration(wcDur,
+					dCurrentPositionAudio, fNumOfSamples, fNumOfSamplesPerSec);
+				m_conStaticText.pDuration.get()->SetText(wcDur);
+			}
 
 			if (m_bHold) { break; }
 			if (m_ap.get()) {
@@ -252,16 +274,9 @@ bool MainDlg::WavFileName
 	return(bResult);
 }
 
-void MainDlg::AudioDuration
-	(wchar_t wcAudioDuration[_STRING_SIZE_])
+void MainDlg::AudioDuration(wchar_t wcAudioDuration[_STRING_SIZE_],
+	double dCurrentPositionAudio, float fNumOfSamples, float fNumOfSamplesPerSec)
 {
-	double dCurrentPositionAudio = m_ap.get()->
-		CurrentPositonAudio();
-	float fNumOfSamples = (float)m_ap.get()->
-		NumOfSamples();
-	float fNumOfSamplesPerSec = (float)m_ap.get()->
-		NumOfSamplesPerSec();
-
 	size_t sElapsedSec = (size_t)round(dCurrentPositionAudio *
 		(fNumOfSamples / fNumOfSamplesPerSec));
 	size_t sElapsedMin = (size_t)

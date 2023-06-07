@@ -1,5 +1,5 @@
-#ifndef _BASEDLGBOX_
-#define _BASEDLGBOX_
+#ifndef _BASEDLGBOX_H_
+#define _BASEDLGBOX_H_
 
 #include "framework.h"
 
@@ -36,4 +36,4 @@ protected:
 		WPARAM _In_ wParam, LPARAM _In_ lParam);
 };
 
-#endif //_BASEDLGBOX_
+#endif //_BASEDLGBOX_H_

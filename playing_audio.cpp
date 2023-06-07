@@ -23,7 +23,7 @@ float AudioEngine::PlayingAudio::ProcessAudioSample(int nChannel,
 {
 	// Calculate sample position
 	m_dSamplePosition.store(
-		m_dSamplePosition.load() + (float)pS->wavHeader.nSamplesPerSec * fTimeStep
+		m_dSamplePosition.load() + (double)pS->wavHeader.nSamplesPerSec * fTimeStep
 	);
 	
 	// If sample position is valid add to the mix

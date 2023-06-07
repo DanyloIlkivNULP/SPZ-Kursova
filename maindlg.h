@@ -1,5 +1,5 @@
-#ifndef _MAINDLG_
-#define _MAINDLG_
+#ifndef _MAINDLG_H_
+#define _MAINDLG_H_
 
 #include "framework.h"
 #include "basedlgbox.h"
@@ -58,8 +58,8 @@ private:
 
 	bool m_bHold = 0x0;
 
-	void AudioDuration
-		(wchar_t wcAudioDuration[_STRING_SIZE_]);
+	void AudioDuration(wchar_t wcAudioDuration[_STRING_SIZE_],
+		double dCurrentPositionAudio, float fNumOfSamples, float fNumOfSamplesPerSec);
 };
 
-#endif //_MAINDLG_
+#endif //_MAINDLG_H_
