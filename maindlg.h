@@ -5,9 +5,9 @@
 #include "basedlgbox.h"
 
 class AudioEngine;
-
 class AudioPlayer;
 
+class StaticText;
 class Slider;
 
 class MainDlg : 
@@ -30,9 +30,20 @@ private:
 	bool OnUserCreate(void); bool OnUserDestroy(void);
 
 	struct {
-		Slider* pSlider = nullptr;
+		std::unique_ptr<StaticText>
+			pFileName = nullptr,
+			pDuration = nullptr;
+	} m_conStaticText;
+
+	struct {
+		std::unique_ptr
+			<Slider> pSlider = nullptr;
 		bool bHold = 0x0;
-	} m_conSlider;
+	} m_conAudioTrack, m_conVolume;
+
+#define _DURATION_SIZE_ (size_t)256
+	void CalcDuration
+		(wchar_t wcDuration[_DURATION_SIZE_]);
 };
 
 #endif //_MAINDLG_

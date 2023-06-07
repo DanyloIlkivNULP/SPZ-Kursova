@@ -27,8 +27,9 @@ public:
 
 
 	virtual bool CreateAudio(
-		unsigned int nSampleRate = 44100, unsigned int nChannels = 0x1,
-		unsigned int nBlocks = 0x8, unsigned int nBlockSamples = 512
+		unsigned int nSampleRate = 44100, unsigned int nBitsPerSample = 16,
+		unsigned int nChannels = 0x1, unsigned int nBlocks = 0x8,
+		unsigned int nBlockSamples = 512
 	);
 	virtual bool DestroyAudio(void);
 
@@ -48,6 +49,7 @@ private:
 
 protected:
 	unsigned int m_nSampleRate = 0x0;
+	unsigned int m_nBitsPerSample = 0x0;
 	unsigned int m_nChannels = 0x0;
 	unsigned int m_nBlockCount = 0x0;
 	unsigned int m_nBlockSamples = 0x0;

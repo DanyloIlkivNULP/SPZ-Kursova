@@ -16,26 +16,35 @@ AudioPlayer::AudioPlayer(pAudioEngine pAE,
 	m_pCPA = m_pAE->listActiveSamples.back();
 }
 AudioPlayer::~AudioPlayer(void) {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_pAE->m_muxProcessAudio);
 	m_pCPA.get()->m_bFinish = true;
 }
 
-void AudioPlayer::PauseAudio(void) {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_pAE->m_muxProcessAudio);
-	m_bPause = !m_bPause;
+const wchar_t*
+	AudioPlayer::FileName(void) const
+{ return(m_pAS.get()->FileName()); }
+
+void AudioPlayer::PauseAudio(void)
+{ m_bPause = !m_bPause; }
+void AudioPlayer::PauseAudio(bool bState)
+{ m_bPause = bState; }
+
+void AudioPlayer::VolumeAudio(float fVolume) {
+	if (fVolume >= 0.f)
+	{ fVolume = fmin(fVolume, 1.f); }
+	else
+	{ fVolume = fmax(fVolume, 0.f); }
+	m_fVolume.store(fVolume);
 }
-void AudioPlayer::PauseAudio(bool bState) {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_pAE->m_muxProcessAudio);
-	m_bPause = bState;
-}
+float AudioPlayer::CurrentVolume(void) const
+{ return(m_fVolume); }
 
 void AudioPlayer::PositonAudio(float fSamplePosition) {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_pAE->m_muxProcessAudio);
-	m_pCPA.get()->m_fSamplePosition = m_pAS.get()->m_nSamples * fSamplePosition;
+	if (fSamplePosition >= 0.f)
+	{ fSamplePosition = fmin(fSamplePosition, 1.f); }
+	else
+	{ fSamplePosition = fmax(fSamplePosition, 0.f); }
+	m_pCPA.get()->m_fSamplePosition = m_pAS.get()->
+		m_nSamples * fSamplePosition;
 }
 
 float AudioPlayer::CurrentPositonAudio(void) const
@@ -55,25 +64,23 @@ float AudioPlayer::AudioHandler(int nChannel,
 )
 {
 	// Calculate sample position
-	if (!m_bPause)
-	{
-		m_pCPA.get()->m_fSamplePosition +=
-			(float)pS->wavHeader.nSamplesPerSec * fTimeStep;
-	}
-	else { goto linkExit; }
+	if (!m_bPause) {
+		m_pCPA.get()->m_fSamplePosition.store(m_pCPA.get()->m_fSamplePosition.load() + 
+			(float)pS->wavHeader.nSamplesPerSec * fTimeStep
+		);
+	} else
+	{ return(fMixerSample); }
 
 	// If sample position is valid add to the mix
-	if (m_pCPA.get()->m_fSamplePosition < pS->m_nSamples)
-	{
-		fMixerSample += pS->
-			m_fSample[((long)round(m_pCPA.get()->m_fSamplePosition) * pS->m_nChannels) + nChannel];
+	if (m_pCPA.get()->m_fSamplePosition < pS->m_nSamples) {
+		fMixerSample += (
+			pS->m_fSample[((long)round(m_pCPA.get()->m_fSamplePosition) * pS->m_nChannels) + nChannel]
+		) * m_fVolume.load();
 	}
-	else
-	{
+	else {
 		m_bPause = true;
 		m_pCPA.get()->m_fSamplePosition = 0.f;
 	} // Else sound has completed
-linkExit:
 	return(fMixerSample);
 }
 

@@ -11,7 +11,7 @@ class Slider :
 	POINT m_pRange = { 0x0 };
 public:
 	Slider(HWND hParent,
-		DWORD dwDlgItem, POINT pRange);
+		DWORD dwDlgItem, DWORD dwPos, POINT pRange);
 	~Slider(void);
 
 	DWORD GetPos(void);
@@ -20,4 +20,4 @@ public:
 		(DWORD dwPos);
 };
 
-#endif // !_CONTROL_SLIDER_H_
+#endif // _CONTROL_SLIDER_H_

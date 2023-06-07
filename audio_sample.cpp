@@ -5,7 +5,9 @@
 AudioEngine::AudioSample::AudioSample(void)
 { /*Code...*/ }
 
-AudioEngine::AudioSample::AudioSample(std::wstring sWavFile) {
+AudioEngine::AudioSample::AudioSample
+	(std::wstring sWavFile) : m_sWavFile(sWavFile)
+{
 	if(!LoadAudioSample(sWavFile))
 	{ Logger::ShowMessage(L"LoadAudioSample - Failed!",
 		L"Error!");
@@ -18,6 +20,9 @@ AudioEngine::AudioSample::~AudioSample(void) {
 		m_fSample = nullptr;
 	}
 }
+
+const wchar_t* AudioEngine::AudioSample::FileName(void) const
+{ return(m_sWavFile.data()); }
 
 bool AudioEngine::AudioSample::LoadAudioSample(std::wstring sWavFile) {
 	// Load Wav file and convert to float format

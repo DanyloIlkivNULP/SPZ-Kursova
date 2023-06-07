@@ -43,9 +43,16 @@ public:
 	AudioPlayer(const AudioPlayer& ae) = delete;
 	AudioPlayer& operator=(const AudioPlayer& ae) = delete;
 
+	const wchar_t*
+		FileName(void) const;
+
 	void PauseAudio
 		(bool bState);
 	void PauseAudio(void);
+
+	void VolumeAudio
+		(float fVolume);
+	float CurrentVolume(void) const;
 
 	void PositonAudio
 		(float fSamplePosition);
@@ -65,7 +72,8 @@ protected:
 	std::shared_ptr
 		<AudioEngine::PlayingAudio> m_pCPA = nullptr;
 
-	bool m_bPause = false;
+	std::atomic<bool> m_bPause = false;
+	std::atomic<float> m_fVolume = 1.f;
 
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,

@@ -17,12 +17,17 @@ public:
 
 	AudioSample(std::wstring sWavFile);
 
+	const wchar_t*
+		FileName(void) const;
+
 protected:
 	WAVEFORMATEX wavHeader = { 0x0 };
 
 	float* m_fSample = nullptr;
 	long m_nSamples = 0x0;
 	int m_nChannels = 0x0;
+
+	std::wstring m_sWavFile;
 
 	virtual bool LoadAudioSample
 		(std::wstring sWavFile);

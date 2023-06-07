@@ -43,11 +43,14 @@ void AudioEngine::PlayAudioSample(AUDIOID ID) {
 
 // The audio system uses by default a specific wave format
 bool AudioEngine::CreateAudio(
-	unsigned int nSampleRate, unsigned int nChannels,
-	unsigned int nBlocks, unsigned int nBlockSamples)
+	unsigned int nSampleRate, unsigned int nBitsPerSample,
+	unsigned int nChannels, unsigned int nBlocks,
+	unsigned int nBlockSamples
+)
 {
 	// Initialise Sound Engine
 	m_nSampleRate = nSampleRate;
+	m_nBitsPerSample = nBitsPerSample;
 	m_nChannels = nChannels;
 	m_nBlockCount = nBlocks;
 	m_nBlockSamples = nBlockSamples;
@@ -61,7 +64,7 @@ bool AudioEngine::CreateAudio(
 	WAVEFORMATEX waveFormat;
 	waveFormat.wFormatTag = WAVE_FORMAT_PCM;
 	waveFormat.nSamplesPerSec = m_nSampleRate;
-	waveFormat.wBitsPerSample = sizeof(short) * 0x8;
+	waveFormat.wBitsPerSample = m_nBitsPerSample;
 	waveFormat.nChannels = m_nChannels;
 	waveFormat.nBlockAlign = (waveFormat.wBitsPerSample / 0x8) * waveFormat.nChannels;
 	waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
@@ -148,7 +151,7 @@ void AudioEngine::AudioThread(void) {
 	float fTimeStep = 1.f / (float)m_nSampleRate;
 
 	// Goofy hack to get maximum integer for a type at run-time
-	short nMaxSample = (short)pow(0x2, (sizeof(short) * 0x8) - 0x1) - 0x1;
+	short nMaxSample = (short)pow(0x2, m_nBitsPerSample - 0x1) - 0x1;
 	float fMaxSample = (float)nMaxSample;
 	short nPreviousSample = 0x0;
 

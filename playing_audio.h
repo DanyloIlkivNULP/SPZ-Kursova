@@ -12,19 +12,19 @@ class AudioEngine::PlayingAudio
 {
 	friend class AudioEngine;
 	friend class AudioPlayer;
+
+	AUDIOID m_nAudioSampleID = 0x0;
 public:
 	PlayingAudio
 		(AUDIOID nAudioSampleID = -(0x1));
 	~PlayingAudio(void);
 
-	int AudioSampleID(void) const;
+	AUDIOID AudioSampleID(void) const;
 	bool IsFinish(void) const;
 
 protected:
-	AUDIOID m_nAudioSampleID = 0x0;
-
-	float m_fSamplePosition = 0.f;
-	bool m_bFinish = false;
+	std::atomic<float> m_fSamplePosition = 0.f;
+	std::atomic<bool> m_bFinish = false;
 
 	virtual float ProcessAudioSample(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,

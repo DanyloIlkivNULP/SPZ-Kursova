@@ -1,6 +1,6 @@
 #include "control_slider.h"
 
-Slider::Slider(HWND hParent, DWORD dwDlgItem, POINT pRange) :
+Slider::Slider(HWND hParent, DWORD dwDlgItem, DWORD dwPos, POINT pRange) :
 	Control(hParent, dwDlgItem), m_pRange(pRange)
 {
 	SendMessage(m_hWnd, TBM_SETRANGE,
@@ -8,6 +8,11 @@ Slider::Slider(HWND hParent, DWORD dwDlgItem, POINT pRange) :
 
 	SendMessage(m_hWnd, TBM_SETPAGESIZE,
 		0x0, (LPARAM)0xA);
+
+	SendMessage(
+		m_hWnd, TBM_SETPOS,
+		(WPARAM)TRUE, (LPARAM)(m_dwPos = dwPos)
+	);
 }
 Slider::~Slider(void) { /*Code...*/ }
 

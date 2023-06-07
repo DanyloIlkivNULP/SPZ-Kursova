@@ -1,6 +1,7 @@
 #include "maindlg.h"
 #include "resource.h"
 
+#include "control_static_text.h"
 #include "control_slider.h"
 
 #include "audio_engine.h"
@@ -40,12 +41,21 @@ MainDlg::MainDlg(LPWSTR dlgResName, std::wstring sWavFile, AudioEngine& refAE) :
 	m_ap = std::make_unique
 		<AudioPlayer>(&m_refAE, nMusic);
 }
-MainDlg::~MainDlg(void)
-{ /*Code...*/ }
+MainDlg::~MainDlg(void) { /*Code...*/ }
 
 bool MainDlg::OnUserCreate(void) {
-	m_conSlider.pSlider = new
-		Slider(m_hWnd, IDC_SLIDER, { 0x0, 100 });
+	m_conStaticText.pFileName = std::make_unique
+		<StaticText>(m_hWnd, IDC_FILE_NAME,
+			m_ap.get()->FileName()
+	);
+	m_conStaticText.pDuration = std::make_unique
+		<StaticText>(m_hWnd, IDC_DURATION, L"00:00:00"
+	);
+
+	m_conAudioTrack.pSlider = std::make_unique
+		<Slider>(m_hWnd, IDC_AUDIO_TRACK, 0x0, POINT{ 0x0, 100 });
+	m_conVolume.pSlider = std::make_unique
+		<Slider>(m_hWnd, IDC_VOLUME, 150, POINT{ 0x0, 300 });
 
 	(void)SetTimer(m_hWnd,
 		_TIMER_MAIN_ID_, _TIMER_MAIN_ELAPSE_, NULL
@@ -84,22 +94,32 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 	case WM_HSCROLL: {
 		HWND hWndTrack = (HWND)lParam;
-		if (m_conSlider.pSlider->GetHandle() != hWndTrack) { break; }
+		if (hWndTrack == m_conAudioTrack.pSlider->GetHandle())
+			if (LOWORD(wParam) != SB_ENDSCROLL) {
+				DWORD dwPos = m_conAudioTrack.pSlider->GetPos();
+				{ m_ap->PositonAudio(dwPos / 100.f); }
 
-		if (LOWORD(wParam) != SB_ENDSCROLL) { 
-			DWORD dwPos = m_conSlider.pSlider->GetPos();
-			{ m_ap->PositonAudio(dwPos / 100.f); }
+				m_conAudioTrack.bHold = 0x1;
+				if (dwPos == 100)
+				{ m_conAudioTrack.pSlider->SetPos(0x0);
+					m_ap.get()->PauseAudio(false);
+				}
 
-			m_conSlider.bHold = 0x1;
-			if (dwPos == 100)
-			{ m_conSlider.pSlider->SetPos(0x0);
-				m_ap.get()->PauseAudio(false);
+				WCHAR wcDur[256] = { 0x0 }; CalcDuration(wcDur);
+				m_conStaticText.pDuration.get()->SetText(wcDur);
 			}
-		}
-		else { m_conSlider.bHold = 0x0; }
+			else { m_conAudioTrack.bHold = 0x0; }
 	} break;
 	case WM_VSCROLL: {
-		/*Code...*/
+		HWND hWndTrack = (HWND)lParam;
+		if (hWndTrack == m_conVolume.pSlider->GetHandle())
+			if (LOWORD(wParam) != SB_ENDSCROLL) {
+				DWORD dwPos = m_conVolume.pSlider->GetPos();
+				{ m_ap->VolumeAudio((300 - dwPos) / 300.f); }
+
+				m_conVolume.bHold = 0x1;
+			}
+			else { m_conVolume.bHold = 0x0; }
 	} break;
 
 	case WM_TIMER: {
@@ -108,20 +128,12 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		{
 
 		case _TIMER_MAIN_ID_: {
-			HWND hStaticText = GetDlgItem
-				(m_hWnd, IDC_DURATION);
-
-			size_t sElapsedSec = (size_t)roundf(m_ap.get()->CurrentPositonAudio() *
-				(m_ap.get()->NumOfSamples() / m_ap.get()->NumOfSamplesPerSec()));
-
-			WCHAR wcDur[256] = { 0x0 };
-			swprintf_s(wcDur, L"%02d:%02d:%02d",
-				sElapsedSec / (60 * 60), sElapsedSec / 60, sElapsedSec % 60);
-			SetWindowText(hStaticText, wcDur);
-
-			if (m_conSlider.bHold) { break; }
-			m_conSlider.pSlider->SetPos
+			if (m_conAudioTrack.bHold) { break; }
+			m_conAudioTrack.pSlider->SetPos
 				((DWORD)(m_ap.get()->CurrentPositonAudio() * 100.f));
+
+			WCHAR wcDur[256] = { 0x0 }; CalcDuration(wcDur);
+			m_conStaticText.pDuration.get()->SetText(wcDur);
 		}
 
 		default:
@@ -155,4 +167,20 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		break;
 	}
 	return(0x0);
+}
+
+void MainDlg::CalcDuration
+	(wchar_t wcDuration[_DURATION_SIZE_])
+{
+	size_t sElapsedSec = (size_t)roundf(m_ap.get()->CurrentPositonAudio() *
+		(m_ap.get()->NumOfSamples() / m_ap.get()->NumOfSamplesPerSec()));
+	size_t sElapsedMin = (size_t)
+		(sElapsedSec / 60.f);
+	size_t sElapsedHour = (size_t)
+		(sElapsedMin / 60.f);
+
+	ZeroMemory(wcDuration,
+		sizeof(wchar_t) * _DURATION_SIZE_);
+	swprintf_s((wchar_t*)wcDuration, _DURATION_SIZE_, L"%02i:%02i:%02i",
+		sElapsedHour % 60, sElapsedMin % 60, sElapsedSec % 60);
 }
