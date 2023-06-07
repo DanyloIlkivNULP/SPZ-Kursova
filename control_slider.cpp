@@ -29,3 +29,9 @@ void Slider::SetPos(DWORD dwPos) {
 		(WPARAM)TRUE, (LPARAM)(m_dwPos = dwPos)
 	);
 }
+
+DWORD Slider::GetRange(void) const
+{ return(m_pRange.y - m_pRange.x); }
+
+POINT Slider::GetRangeParam(void) const
+{ return(m_pRange); }

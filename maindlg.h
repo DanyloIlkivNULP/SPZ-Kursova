@@ -49,9 +49,14 @@ private:
 
 	struct {
 		std::unique_ptr
-			<Slider> pSlider = nullptr;
-		bool bHold = 0x0;
-	} m_conAudioTrack, m_conVolume;
+			<Slider> pAudioTrack = nullptr;
+		std::unique_ptr
+			<Slider> pVolume = nullptr;
+		std::unique_ptr
+			<Slider> pPitch = nullptr;
+	} m_conSlider;
+
+	bool m_bHold = 0x0;
 
 	void AudioDuration
 		(wchar_t wcAudioDuration[_STRING_SIZE_]);

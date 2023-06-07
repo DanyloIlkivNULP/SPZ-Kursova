@@ -14,6 +14,8 @@
 #define IDC_FILE_NAME                   1009
 #define IDC_STATIC_2                    1010
 #define IDC_GROUPBOX_0                  1011
+#define IDC_PITCH                       1012
+#define IDC_STATIC_4                    1013
 
 // Next default values for new objects
 // 

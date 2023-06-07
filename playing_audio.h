@@ -23,7 +23,7 @@ public:
 	bool IsFinish(void) const;
 
 protected:
-	std::atomic<float> m_fSamplePosition = 0.f;
+	std::atomic<double> m_dSamplePosition = 0.0;
 	std::atomic<bool> m_bFinish = false;
 
 	virtual float ProcessAudioSample(int nChannel,

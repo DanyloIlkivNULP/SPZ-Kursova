@@ -61,9 +61,13 @@ public:
 		(float fVolume);
 	float CurrentVolume(void) const;
 
+	void PitchAudio
+		(float fPitch);
+	float CurrentPitch(void) const;
+
 	void PositonAudio
-		(float fSamplePosition);
-	float CurrentPositonAudio
+		(double dSamplePosition);
+	double CurrentPositonAudio
 		(void) const;
 
 	DWORD NumOfSamples
@@ -81,13 +85,17 @@ protected:
 
 	std::atomic<bool> m_bState = 0x0;
 	std::atomic<float> m_fVolume = 1.f;
+	std::atomic<float> m_fPitch = 1.f;
 
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
 		const std::shared_ptr<AudioEngine::AudioSample>& pS
 	);
 
-	virtual float Clip(float& f);
+	virtual float
+		Clip(float& f);
+	virtual double
+		Clip(double& d);
 };
 
 #endif // _AUDIO_PLAYER_H_

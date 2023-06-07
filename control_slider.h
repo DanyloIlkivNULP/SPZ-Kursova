@@ -18,6 +18,10 @@ public:
 
 	void SetPos
 		(DWORD dwPos);
+
+	DWORD GetRange(void) const;
+	POINT GetRangeParam
+		(void) const;
 };
 
 #endif // _CONTROL_SLIDER_H_

@@ -5,7 +5,7 @@
 AudioEngine::PlayingAudio::PlayingAudio(AUDIOID nAudioSampleID) :
 	m_nAudioSampleID(nAudioSampleID)
 {
-	m_fSamplePosition = 0.f;
+	m_dSamplePosition = 0.0;
 	m_bFinish = false;
 }
 AudioEngine::PlayingAudio::~PlayingAudio(void)
@@ -22,13 +22,13 @@ float AudioEngine::PlayingAudio::ProcessAudioSample(int nChannel,
 )
 {
 	// Calculate sample position
-	m_fSamplePosition.store(
-		m_fSamplePosition.load() + (float)pS->wavHeader.nSamplesPerSec * fTimeStep
+	m_dSamplePosition.store(
+		m_dSamplePosition.load() + (float)pS->wavHeader.nSamplesPerSec * fTimeStep
 	);
 	
 	// If sample position is valid add to the mix
-	if (m_fSamplePosition < pS.get()->m_nSamples)
-	{ fMixerSample += pS.get()->m_fSample[((long)round(m_fSamplePosition) *
+	if (m_dSamplePosition < pS.get()->m_nSamples)
+	{ fMixerSample += pS.get()->m_fSample[((long)round(m_dSamplePosition) *
 		pS.get()->m_nChannels) + nChannel];
 	}
 	else
