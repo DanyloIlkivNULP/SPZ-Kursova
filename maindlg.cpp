@@ -235,21 +235,6 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		{
 
 		case _TIMER_MAIN_ID_: {
-			if (m_ap.get()) {
-				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };
-
-				double dCurrentPositionAudio = m_ap.get()->
-					CurrentPositonAudio();
-				float fNumOfSamples = (float)m_ap.get()->
-					NumOfSamples();
-				float fNumOfSamplesPerSec = (float)m_ap.get()->
-					NumOfSamplesPerSec();
-				
-				AudioDuration(wcDur,
-					dCurrentPositionAudio, fNumOfSamples, fNumOfSamplesPerSec);
-				m_conStaticText.pDuration.get()->SetText(wcDur);
-			}
-
 			if (m_bHold) { break; }
 			if (m_ap.get()) {
 				if (m_conSlider.pAudioTrack.get()->GetPos() ==
@@ -264,6 +249,19 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				((DWORD)(m_ap.get()->CurrentPositonAudio() *
 					m_conSlider.pAudioTrack.get()->GetRange())
 				);
+
+				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };
+
+				double dCurrentPositionAudio = m_ap.get()->
+					CurrentPositonAudio();
+				float fNumOfSamples = (float)m_ap.get()->
+					NumOfSamples();
+				float fNumOfSamplesPerSec = (float)m_ap.get()->
+					NumOfSamplesPerSec();
+
+				AudioDuration(wcDur,
+					dCurrentPositionAudio, fNumOfSamples, fNumOfSamplesPerSec);
+				m_conStaticText.pDuration.get()->SetText(wcDur);
 			}
 		}
 
