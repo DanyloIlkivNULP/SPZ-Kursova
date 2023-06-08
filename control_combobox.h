@@ -7,6 +7,7 @@
 class Combobox :
 	public Control
 {
+	INT m_iIndex = -0x1;
 	std::wstring m_wsText;
 public:
 	Combobox(HWND hParent,

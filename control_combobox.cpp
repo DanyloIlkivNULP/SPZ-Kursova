@@ -14,7 +14,7 @@ void Combobox::AddItemString
 		CB_ADDSTRING, NULL, (LPARAM)wcString
 	);
 	SendMessage(m_hWnd,
-		CB_SETCURSEL, 0x0, 0x0
+		CB_SETCURSEL, m_iIndex += 0x1, 0x0
 	);
 }
 const wchar_t* Combobox::ItemString(INT ID) {

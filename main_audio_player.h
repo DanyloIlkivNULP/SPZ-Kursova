@@ -63,6 +63,8 @@ private:
 		m_fVolume = 1.f,
 		m_fPitch = 1.f;
 
+	mutable std::recursive_mutex m_muxData;
+
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
 			const pAudioSample pS, const pPlayingAudio pA

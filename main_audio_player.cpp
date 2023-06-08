@@ -14,19 +14,44 @@ MainAudioPlayer::~MainAudioPlayer(void)
 	/*Code...*/
 }
 
-AudioPlayer::AUDIO_DATA& MainAudioPlayer::AudioData(void) const
-{ return(m_vecAudio[m_nCurrentAudio.load() - 0x1]); }
+AudioPlayer::AUDIO_DATA&
+	MainAudioPlayer::AudioData(void) const
+{
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
+	return(m_vecAudio
+		[m_nCurrentAudio.load() - 0x1]
+	);
+}
 
 std::shared_ptr<AudioEngine::AudioSample>&
 	MainAudioPlayer::AudioSample(void) const
-{ return(m_vecAudio[m_nCurrentAudio.load() - 0x1].first); }
+{
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
+	return(m_vecAudio
+		[m_nCurrentAudio.load() - 0x1].first
+	);
+}
 std::shared_ptr<AudioEngine::PlayingAudio>&
 	MainAudioPlayer::PlayingAudio(void) const
-{ return(m_vecAudio[m_nCurrentAudio.load() - 0x1].second); }
+{
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
+	return(m_vecAudio
+		[m_nCurrentAudio.load() - 0x1].second
+	);
+}
 
 AUDIOID MainAudioPlayer::LoadAudio(AUDIOID ID) {
 	if (ID == -0x1)
 	{ return(ID); }
+
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
 
 	AUDIO_DATA ad = CreateAudio(ID);
 
@@ -42,6 +67,9 @@ bool MainAudioPlayer::ChangeCurrentAudio
 	(AUDIOID ID)
 {
 	bool bResult = 0x0;
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
 	if (ID < 0x0) { return(bResult); }
 	if (bResult = ((size_t)ID <= m_vecAudio.size()))
 		{ m_nCurrentAudio.store(ID); }
@@ -51,9 +79,14 @@ bool MainAudioPlayer::ChangeCurrentAudio
 AUDIOID MainAudioPlayer::CurrentAudio(void) const
 { return(m_nCurrentAudio.load()); }
 
-const wchar_t*MainAudioPlayer::FileName(void) const {
+const wchar_t* MainAudioPlayer::FileName(void) const {
 	if (m_nCurrentAudio.load() == -0x1) { return(NULL); }
-	return(AudioSample().get()->m_wsWavFile.data());
+
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
+	return(AudioSample().get()->
+		m_wsWavFile.data());
 }
 
 void MainAudioPlayer::SwapStateAudio(void)
@@ -83,6 +116,9 @@ float MainAudioPlayer::CurrentPitch(void) const
 
 void MainAudioPlayer::PositonAudio(double dSamplePosition) {
 	if (m_nCurrentAudio.load() == -0x1) { return; }
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
 	dSamplePosition = Clip(dSamplePosition);
 	PlayingAudio().get()->m_dSamplePosition = (double)AudioSample().get()->
 		m_nSamples * dSamplePosition;
@@ -90,6 +126,9 @@ void MainAudioPlayer::PositonAudio(double dSamplePosition) {
 
 double MainAudioPlayer::CurrentPositonAudio(void) const {
 	if (m_nCurrentAudio.load() == -0x1) { return(0.0); }
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
 	return(PlayingAudio().get()->m_dSamplePosition /
 		AudioSample().get()->m_nSamples
 	);
@@ -97,12 +136,22 @@ double MainAudioPlayer::CurrentPositonAudio(void) const {
 
 DWORD MainAudioPlayer::NumOfSamples(void) const {
 	if (m_nCurrentAudio.load() == -0x1) { return(0x0); }
-	return(AudioSample().get()->m_nSamples);
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
+	return(AudioSample().get()->
+		m_nSamples
+	);
 }
 
 DWORD MainAudioPlayer::NumOfSamplesPerSec(void) const {
 	if (m_nCurrentAudio.load() == -0x1) { return(0x0); }
-	return(AudioSample().get()->wavHeader.nSamplesPerSec);
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
+	return(AudioSample().get()->
+		wavHeader.nSamplesPerSec
+	);
 }
 
 
