@@ -12,8 +12,6 @@ class StaticText;
 class Combobox;
 class Slider;
 
-#define _STRING_SIZE_ (size_t)256
-
 class MainAudioPlayer;
 
 class MainDlg : 
@@ -30,9 +28,6 @@ class MainDlg :
 		(AUDIOID nMusicID);
 	bool ChangeAudioMusic
 		(AUDIOID nMusicID);
-
-	bool WavFileName
-		(wchar_t wcFileName[_STRING_SIZE_]);
 public:
 	MainDlg(LPWSTR dlgResName,
 		const wchar_t* wcWavFile, AudioEngine& refAE);
@@ -66,7 +61,10 @@ private:
 
 	bool m_bHold = 0x0;
 
-	void AudioDuration(wchar_t wcAudioDuration[_STRING_SIZE_],
+	bool WavFileName
+		(wchar_t wcFileName[MAX_PATH]);
+
+	void AudioDuration(wchar_t wcAudioDuration[MAX_PATH],
 		double dCurrentPositionAudio, float fNumOfSamples, float fNumOfSamplesPerSec);
 };
 

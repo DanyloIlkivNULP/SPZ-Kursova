@@ -24,6 +24,8 @@ MainDlg::MainDlg(LPWSTR dlgResName, const wchar_t* wcWavFile, AudioEngine& refAE
 MainDlg::~MainDlg(void) { /*Code...*/ }
 
 bool MainDlg::OnUserCreate(void) {
+	DragAcceptFiles
+		(m_hWnd, TRUE);
 	m_pPlay = std::make_unique
 		<Button>(m_hWnd, ID_PLAY, L"[...]"
 	);
@@ -121,7 +123,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 		switch (lwID) {
 		case ID_FILE: {
-			WCHAR wcFileName[_STRING_SIZE_] = { 0x0 };
+			WCHAR wcFileName[MAX_PATH] = { 0x0 };
 			BOOL bResult = WavFileName(wcFileName);
 
 			AUDIOID nMusic = m_refAE.
@@ -187,7 +189,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 					(float)m_conSlider.pAudioTrack.get()->GetRange());
 				m_bHold = 0x1;
 
-				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };
+				WCHAR wcDur[MAX_PATH] = { 0x0 };
 
 				double dCurrentPositionAudio = m_ap.get()->
 					CurrentPositonAudio();
@@ -250,7 +252,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 					m_conSlider.pAudioTrack.get()->GetRange())
 				);
 
-				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };
+				WCHAR wcDur[MAX_PATH] = { 0x0 };
 
 				double dCurrentPositionAudio = m_ap.get()->
 					CurrentPositonAudio();
@@ -269,6 +271,32 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			break;
 		}
 	}
+
+	case WM_DROPFILES: {
+		HDROP hDrop = (HDROP)wParam;
+		if (hDrop != NULL) {
+			wchar_t wcFileName[MAX_PATH]{};
+
+			size_t sCnt = DragQueryFile(hDrop,
+				0xFFFFFFFF, NULL, 0x0
+			);
+			for (size_t i = 0x0; i < sCnt; i++) {
+				DragQueryFile(hDrop,
+					i, wcFileName, MAX_PATH
+				);
+				AUDIOID nMusic = m_refAE.
+					LoadAudioSample(wcFileName);
+				if (nMusic != -(0x1)) {
+					(void)NewAudioMusic(nMusic);
+					m_pPlayList.get()->AddItemString(wcFileName);
+				}
+				ZeroMemory(&wcFileName,
+					sizeof(wcFileName)
+				);
+			}
+			DragFinish(hDrop);
+		}
+	} break;
 
 	case WM_PAINT: {
 		UNREFERENCED_PARAMETER(lParam), UNREFERENCED_PARAMETER(wParam);
@@ -299,7 +327,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 }
 
 bool MainDlg::WavFileName
-	(wchar_t wcFileName[_STRING_SIZE_])
+	(wchar_t wcFileName[MAX_PATH])
 {
 	BOOL bResult = 0x0;
 
@@ -310,7 +338,7 @@ bool MainDlg::WavFileName
 	hFile.hwndOwner = m_hWnd;
 
 	hFile.lpstrFile = wcFileName;
-	hFile.nMaxFile = _STRING_SIZE_;
+	hFile.nMaxFile = MAX_PATH;
 
 	hFile.lpstrFilter = L"*.wav\0";
 	hFile.lpstrFileTitle = NULL;
@@ -325,7 +353,7 @@ bool MainDlg::WavFileName
 	return(bResult);
 }
 
-void MainDlg::AudioDuration(wchar_t wcAudioDuration[_STRING_SIZE_],
+void MainDlg::AudioDuration(wchar_t wcAudioDuration[MAX_PATH],
 	double dCurrentPositionAudio, float fNumOfSamples, float fNumOfSamplesPerSec)
 {
 	size_t sElapsedSec = (size_t)round(dCurrentPositionAudio *
@@ -336,7 +364,7 @@ void MainDlg::AudioDuration(wchar_t wcAudioDuration[_STRING_SIZE_],
 		(sElapsedMin / 60.f);
 
 	ZeroMemory(wcAudioDuration,
-		sizeof(wchar_t) * _STRING_SIZE_);
-	swprintf_s((wchar_t*)wcAudioDuration, _STRING_SIZE_, L"%02i:%02i:%02i",
+		sizeof(wchar_t) * MAX_PATH);
+	swprintf_s((wchar_t*)wcAudioDuration, MAX_PATH, L"%02i:%02i:%02i",
 		sElapsedHour % 60, sElapsedMin % 60, sElapsedSec % 60);
 }
