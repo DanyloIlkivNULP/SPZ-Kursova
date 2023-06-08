@@ -15,6 +15,8 @@
 #define _TIMER_MAIN_ID_ (INT)0x0
 #define _TIMER_MAIN_ELAPSE_ (INT)128
 
+#define _FILE_FORMAT_ L"*.wav\n"
+
 MainDlg::MainDlg(LPWSTR dlgResName, const wchar_t* wcWavFile, AudioEngine& refAE) :
 	m_wcWavFile((wchar_t*)wcWavFile), m_refAE(refAE), BaseDlgBox(dlgResName)
 {
@@ -340,7 +342,7 @@ bool MainDlg::WavFileName
 	hFile.lpstrFile = wcFileName;
 	hFile.nMaxFile = MAX_PATH;
 
-	hFile.lpstrFilter = L"*.wav\0";
+	hFile.lpstrFilter = _FILE_FORMAT_;
 	hFile.lpstrFileTitle = NULL;
 	hFile.nMaxFileTitle = 0x0;
 
