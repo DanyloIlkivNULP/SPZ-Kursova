@@ -213,11 +213,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				DWORD dwPos = m_conSlider.pVolume.get()->GetPos();
 				m_ap.get()->VolumeAudio((float)(m_conSlider.pVolume.get()->GetRange() - dwPos) /
 					m_conSlider.pVolume.get()->GetRange());
-				
-
-				m_bHold = 0x1;
 			}
-			else { m_bHold = 0x0; }
 		}
 		if (m_ap.get() &&
 			hWndTrack == m_conSlider.pPitch.get()->GetHandle()
@@ -229,10 +225,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				((m_conSlider.pPitch.get()->GetRangeParam().y - dwPos +
 					m_conSlider.pPitch.get()->GetRangeParam().x) * 0.5f)
 				);
-
-				m_bHold = 0x1;
 			}
-			else { m_bHold = 0x0; }
 		}
 	} break;
 
