@@ -49,8 +49,7 @@ bool MainDlg::OnUserCreate(void) {
 	m_conSlider.pPitch = std::make_unique
 		<Slider>(m_hWnd, IDC_PITCH, 0x2, POINT{ 0x1, 0x3 });
 
-	
-
+	(void)NewAudioMusic(m_wcWavFile);
 
 	(void)SetTimer(m_hWnd,
 		_TIMER_MAIN_ID_, _TIMER_MAIN_ELAPSE_, NULL
@@ -85,8 +84,6 @@ bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
 		((m_conSlider.pPitch.get()->GetRangeParam().y - m_conSlider.pPitch.get()->GetPos() +
 			m_conSlider.pPitch.get()->GetRangeParam().x) * 0.5f)
 	);
-
-	(void)NewAudioMusic(m_wcWavFile);
 
 	return(true);
 }
