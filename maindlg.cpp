@@ -60,9 +60,14 @@ bool MainDlg::OnUserCreate(void) {
 bool MainDlg::OnUserDestroy(void) { return(true); }
 
 bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
+	if (wcWavFile == NULL) { return(false);
+	}
 	AUDIOID nMusicID = m_refAE.
 		LoadAudioSample(wcWavFile);
-	if (nMusicID == -(0x1)) { return(false); }
+	if (nMusicID == -(0x1))
+	{ Logger::ShowMessage(wcWavFile,
+		L"Failed to Load File!"); return(false);
+	}
 
 	m_ap.get()->LoadAudio(nMusicID);
 
