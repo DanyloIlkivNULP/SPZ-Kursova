@@ -17,9 +17,6 @@ MainAudioPlayer::~MainAudioPlayer(void)
 AudioPlayer::AUDIO_DATA&
 	MainAudioPlayer::AudioData(void) const
 {
-	std::lock_guard<std::recursive_mutex>
-		lgData(m_muxData);
-
 	return(m_vecAudio
 		[m_nCurrentAudio.load() - 0x1]
 	);
@@ -28,9 +25,6 @@ AudioPlayer::AUDIO_DATA&
 std::shared_ptr<AudioEngine::AudioSample>&
 	MainAudioPlayer::AudioSample(void) const
 {
-	std::lock_guard<std::recursive_mutex>
-		lgData(m_muxData);
-
 	return(m_vecAudio
 		[m_nCurrentAudio.load() - 0x1].first
 	);
@@ -38,9 +32,6 @@ std::shared_ptr<AudioEngine::AudioSample>&
 std::shared_ptr<AudioEngine::PlayingAudio>&
 	MainAudioPlayer::PlayingAudio(void) const
 {
-	std::lock_guard<std::recursive_mutex>
-		lgData(m_muxData);
-
 	return(m_vecAudio
 		[m_nCurrentAudio.load() - 0x1].second
 	);
@@ -161,6 +152,9 @@ float MainAudioPlayer::AudioHandler(int nChannel,
 		const pAudioSample pS, const pPlayingAudio pA
 )
 {
+	std::lock_guard<std::recursive_mutex>
+		lgData(m_muxData);
+
 	if (PlayingAudio().get() != pA)
 		{ return(fMixerSample); }
 	// Calculate sample position
