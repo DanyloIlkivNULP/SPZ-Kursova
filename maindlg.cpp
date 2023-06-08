@@ -16,6 +16,7 @@
 #define _TIMER_MAIN_ELAPSE_ (INT)128
 
 #define _FILE_FORMAT_ L"*.wav\n"
+#define _NULL_STRING_ L"[...]"
 
 MainDlg::MainDlg(LPWSTR dlgResName, const wchar_t* wcWavFile, AudioEngine& refAE) :
 	m_wcWavFile((wchar_t*)wcWavFile), m_refAE(refAE), BaseDlgBox(dlgResName)
@@ -29,21 +30,24 @@ bool MainDlg::OnUserCreate(void) {
 	DragAcceptFiles
 		(m_hWnd, TRUE);
 	m_pPlay = std::make_unique
-		<Button>(m_hWnd, ID_PLAY, L"[...]"
+		<Button>(m_hWnd, ID_PLAY, _NULL_STRING_
 	);
 
 	m_pPlayList = std::make_unique
 		<Combobox>(m_hWnd, IDC_PLAYLIST);
 
+	m_conStaticText.pInfo = std::make_unique
+		<StaticText>(m_hWnd, IDC_INFO, _NULL_STRING_
+	);
 	m_conStaticText.pFileName = std::make_unique
-		<StaticText>(m_hWnd, IDC_FILE_NAME, L"[...]"
+		<StaticText>(m_hWnd, IDC_FILE_NAME, _NULL_STRING_
 	);
 	m_conStaticText.pDuration = std::make_unique
 		<StaticText>(m_hWnd, IDC_DURATION, L"00:00:00"
 	);
 
 	m_conSlider.pAudioTrack = std::make_unique
-		<Slider>(m_hWnd, IDC_AUDIO_TRACK, 0x0, POINT{ 0x0, 500 });
+		<Slider>(m_hWnd, IDC_AUDIO_TRACK, 0x0, POINT{ 0x0, 1000 });
 	m_conSlider.pVolume = std::make_unique
 		<Slider>(m_hWnd, IDC_VOLUME, 50, POINT{ 0x0, 100 });
 	m_conSlider.pPitch = std::make_unique
@@ -77,7 +81,10 @@ bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
 	m_pPlayList.get()->
 		AddItemString(wcWavFile);
 
-	const wchar_t* wcState[] = { L"Play", L"Pause" };
+	std::wstring wsInfo = L"Info...";
+	m_conStaticText.pInfo.get()->SetText(wsInfo.data());
+
+	WCHAR* wcState[0x2] = { (wchar_t*)L"Play", (wchar_t*)L"Pause" };
 	m_pPlay.get()->SetText
 		(wcState[m_ap.get()->CurrentStateAudio()]);
 
@@ -103,16 +110,15 @@ bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
 
 	m_ap.get()->ChangeStateAudio
 		(MainAudioPlayer::STATE_STOP);
-	m_ap.get()->PositonAudio(0.0);
-
-	m_pPlay.get()->SetText(L"Play");
+	m_ap.get()->PositonAudio(NULL);
 
 	m_conStaticText.pFileName.get()->
 		SetText(m_ap.get()->FileName());
 
-	OutputDebugString(
-		std::wstring(m_ap.get()->FileName() + L'\n').data()
-	);
+	std::wstring wsInfo = L"Info...";
+	m_conStaticText.pInfo.get()->SetText(wsInfo.data());
+
+	m_pPlay.get()->SetText(L"Play");
 
 	return(bResult);
 }
@@ -132,7 +138,10 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			WCHAR wcFileName[MAX_PATH] = { 0x0 };
 			BOOL bResult = WavFileName(wcFileName);
 
-			(void)NewAudioMusic(wcFileName);
+			if (bResult == TRUE)
+			{ (void)NewAudioMusic
+				(wcFileName);
+			}
 		} break;
 		case ID_PLAY: {
 			if (m_ap.get() &&
@@ -362,6 +371,6 @@ void MainDlg::AudioDuration(wchar_t wcAudioDuration[MAX_PATH],
 
 	ZeroMemory(wcAudioDuration,
 		sizeof(wchar_t) * MAX_PATH);
-	swprintf_s((wchar_t*)wcAudioDuration, MAX_PATH, L"%02i:%02i:%02i",
+	(void)swprintf_s((wchar_t*)wcAudioDuration, MAX_PATH, L"%02i:%02i:%02i",
 		sElapsedHour % 60, sElapsedMin % 60, sElapsedSec % 60);
 }

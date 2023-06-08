@@ -16,6 +16,8 @@
 #define IDC_GROUPBOX_0                  1011
 #define IDC_PITCH                       1012
 #define IDC_STATIC_4                    1013
+#define IDC_INFO                        1014
+#define IDC_STATIC_5                    1015
 #define IDC_PLAYLIST                    1017
 
 // Next default values for new objects

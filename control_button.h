@@ -7,7 +7,7 @@
 class Button :
 	public Control
 {
-	std::wstring m_sText;
+	wchar_t m_wcText[MAX_PATH]{};
 public:
 	Button(HWND hParent,
 		DWORD dwDlgItem, const wchar_t* wcText);
@@ -16,7 +16,7 @@ public:
 	const wchar_t* GetText(void);
 
 	void SetText
-		(const std::wstring& wsText);
+		(const wchar_t* wcText);
 };
 
 #endif // _CONTROL_STATIC_TEXT_H_

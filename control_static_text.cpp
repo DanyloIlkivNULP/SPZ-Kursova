@@ -3,7 +3,7 @@
 StaticText::StaticText(HWND hParent, DWORD dwDlgItem,
 	const wchar_t* wcText) : Control(hParent, dwDlgItem)
 {
-	wcscpy_s(m_wcText, wcText);
+	(void)wcscpy_s(m_wcText, MAX_PATH, wcText);
 	(void)SetWindowText(m_hWnd,
 		m_wcText
 	);
@@ -16,10 +16,10 @@ const wchar_t* StaticText::GetText(void)
 void StaticText::SetText(const wchar_t* wcText) {
 	if (wcslen(m_wcText) != NULL)
 	{ ZeroMemory(m_wcText,
-		sizeof(wchar_t) * 256);
+		sizeof(wchar_t) * MAX_PATH);
 	}
 
-	wcscpy_s(m_wcText, wcText);
+	wcscpy_s(m_wcText, MAX_PATH, wcText);
 	(void)SetWindowText(m_hWnd,
 		m_wcText
 	);

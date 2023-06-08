@@ -7,7 +7,7 @@
 class StaticText :
 	public Control
 {
-	wchar_t m_wcText[256]{};
+	wchar_t m_wcText[MAX_PATH]{};
 public:
 	StaticText(HWND hParent,
 		DWORD dwDlgItem, const wchar_t* wcText);

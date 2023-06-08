@@ -46,6 +46,7 @@ private:
 
 	struct {
 		std::unique_ptr<StaticText>
+			pInfo = nullptr,
 			pFileName = nullptr,
 			pDuration = nullptr;
 	} m_conStaticText;
