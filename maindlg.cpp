@@ -107,7 +107,10 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			}
 		} break;
 		case ID_PLAY: {
-			if (m_ap.get()) {
+			if (m_ap.get() &&
+				(m_ap.get()->CurrentAudio() != -0x1)
+			)
+			{
 				switch (m_ap.get()->CurrentStateAudio()) {
 					case MainAudioPlayer::STATE_PLAY:
 					{ m_pPlay.get()->SetText(L"Play"); } break;
