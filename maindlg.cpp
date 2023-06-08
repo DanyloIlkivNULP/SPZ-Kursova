@@ -85,6 +85,30 @@ bool MainDlg::NewAudioMusic(AUDIOID nMusicID) {
 	return(bResult);
 }
 
+bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
+	bool bResult = false;
+
+	if (nMusicID != -0x1)
+		{ bResult = true; }
+	(void)m_ap.get()->
+		ChangeCurrentAudio(nMusicID);
+
+	m_ap.get()->ChangeStateAudio
+		(MainAudioPlayer::STATE_STOP);
+	m_ap.get()->PositonAudio(0.0);
+
+	m_pPlay.get()->SetText(L"Play");
+
+	m_conStaticText.pFileName.get()->
+		SetText(m_ap.get()->FileName());
+
+	OutputDebugString(
+		std::wstring(m_ap.get()->FileName() + L'\n').data()
+	);
+
+	return(bResult);
+}
+
 LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 	WPARAM _In_ wParam, LPARAM _In_ lParam)
 {
@@ -136,15 +160,9 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				hWndCombobox == m_pPlayList.get()->GetHandle()
 			)
 			{
-				DWORD dwID = m_pPlayList.get()->SelectedItemID() + 0x1;
-				if (m_ap.get()->CurrentAudio() != dwID) {
-					m_pPlay.get()->SetText(L"Play");
-					(void)m_ap.get()->ChangeCurrentAudio
-						((AUDIOID)dwID);
-
-					m_ap.get()->ChangeStateAudio
-						(MainAudioPlayer::STATE_STOP);
-					m_ap.get()->PositonAudio(0.0);
+				INT ID = m_pPlayList.get()->SelectedItemID() + 0x1;
+				if (m_ap.get()->CurrentAudio() != ID) {
+					(void)ChangeAudioMusic(ID);
 				}
 			}
 		} break;
@@ -167,12 +185,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				DWORD dwPos = m_conSlider.pAudioTrack.get()->GetPos();
 				m_ap.get()->PositonAudio(dwPos /
 					(float)m_conSlider.pAudioTrack.get()->GetRange());
-
 				m_bHold = 0x1;
-				if (dwPos == m_conSlider.pAudioTrack.get()->GetRange())
-				{ m_conSlider.pAudioTrack.get()->SetPos(0x0);
-					m_ap.get()->ChangeStateAudio(MainAudioPlayer::STATE_STOP);
-				}
 
 				WCHAR wcDur[_STRING_SIZE_] = { 0x0 };
 
@@ -246,6 +259,14 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 			if (m_bHold) { break; }
 			if (m_ap.get()) {
+				if (m_conSlider.pAudioTrack.get()->GetPos() ==
+					m_conSlider.pAudioTrack.get()->GetRange()
+				)
+				{ m_ap.get()->PositonAudio(0.0);
+					m_ap.get()->ChangeStateAudio
+						(MainAudioPlayer::STATE_STOP);
+					m_pPlay.get()->SetText(L"Play");
+				}
 				m_conSlider.pAudioTrack.get()->SetPos
 				((DWORD)(m_ap.get()->CurrentPositonAudio() *
 					m_conSlider.pAudioTrack.get()->GetRange())

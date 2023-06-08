@@ -28,6 +28,8 @@ class MainDlg :
 
 	bool NewAudioMusic
 		(AUDIOID nMusicID);
+	bool ChangeAudioMusic
+		(AUDIOID nMusicID);
 
 	bool WavFileName
 		(wchar_t wcFileName[_STRING_SIZE_]);

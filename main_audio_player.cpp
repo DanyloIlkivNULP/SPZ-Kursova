@@ -53,7 +53,7 @@ AUDIOID MainAudioPlayer::CurrentAudio(void) const
 
 const wchar_t*MainAudioPlayer::FileName(void) const {
 	if (m_nCurrentAudio.load() == -0x1) { return(NULL); }
-	return(AudioSample().get()->m_wcWavFile);
+	return(AudioSample().get()->m_wsWavFile.data());
 }
 
 void MainAudioPlayer::SwapStateAudio(void)
@@ -129,8 +129,8 @@ float MainAudioPlayer::AudioHandler(int nChannel,
 		) * m_fVolume.load();
 	}
 	else {
-		m_bState.store(STATE_STOP);
-		PlayingAudio().get()->m_dSamplePosition = 0.0;
+		PlayingAudio().get()->
+			m_dSamplePosition = (double)pS->m_nSamples;
 	} // Else sound has completed
 	return(fMixerSample);
 }

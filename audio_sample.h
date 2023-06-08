@@ -24,7 +24,7 @@ public:
 	long m_nSamples = 0x0;
 	int m_nChannels = 0x0;
 
-	const wchar_t* m_wcWavFile = NULL;
+	std::wstring m_wsWavFile;
 
 protected:
 	virtual bool LoadAudioSample

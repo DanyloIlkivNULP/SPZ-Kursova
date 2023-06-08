@@ -6,14 +6,15 @@ AudioEngine::AudioSample::AudioSample(void)
 { /*Code...*/ }
 
 AudioEngine::AudioSample::AudioSample
-	(const wchar_t* wcWavFile) : m_wcWavFile((wchar_t*)wcWavFile)
+	(const wchar_t* wcWavFile)
 {
-	if (m_wcWavFile == NULL)
+	if (wcWavFile == NULL)
 	{ m_bValid = false;
 		{ return; }
 	}
+	m_wsWavFile.append(wcWavFile);
 	m_bValid = LoadAudioSample
-		(m_wcWavFile);
+		(m_wsWavFile.data());
 }
 AudioEngine::AudioSample::~AudioSample(void) {
 	if (m_fSample)
