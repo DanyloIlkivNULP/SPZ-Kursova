@@ -48,7 +48,7 @@ bool MainDlg::OnUserCreate(void) {
 	AUDIOID nMusic = m_refAE.
 		LoadAudioSample(m_wcWavFile);
 	if (nMusic != -(0x1)) {
-		m_ap.get()->LoadAudio(nMusic);
+		(bool)NewAudioMusic(nMusic);
 		m_pPlayList.get()->
 			AddItemString(m_wcWavFile);
 	}
