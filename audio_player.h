@@ -15,6 +15,11 @@ class AudioPlayer {
 protected:
 	typedef AudioEngine*
 		pAudioEngine;
+
+	typedef AudioEngine::AudioSample*
+		pAudioSample;
+	typedef AudioEngine::PlayingAudio*
+		pPlayingAudio;
 private:
 	class ActivePlayingAudio :
 		public AudioEngine::PlayingAudio
@@ -38,8 +43,8 @@ private:
 	};
 
 public:
-	AudioPlayer(pAudioEngine pAE,
-		AUDIOID nAudioSampleID);
+	AudioPlayer
+		(pAudioEngine pAE);
 	~AudioPlayer(void);
 
 	AudioPlayer(const AudioPlayer& ae) = delete;
@@ -57,7 +62,7 @@ protected:
 
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
-		const std::shared_ptr<AudioEngine::AudioSample>& pS
+			const pAudioSample pS, const pPlayingAudio pA
 	) = 0x0;
 };
 

@@ -2,8 +2,8 @@
 
 #include "audio_sample.h"
 
-AudioPlayer::AudioPlayer(pAudioEngine pAE,
-	AUDIOID nAudioSampleID) : m_pAE(pAE)
+AudioPlayer::AudioPlayer(pAudioEngine pAE) :
+	m_pAE(pAE)
 {
 	/*Code...*/
 }
@@ -18,16 +18,18 @@ AudioPlayer::AUDIO_DATA AudioPlayer::CreateAudio
 
 	m_pAE->CreatePlayingAudio
 		<ActivePlayingAudio>(nAudioSampleID, this);
-	return(AUDIO_DATA(
-		m_pAE->vecAudioSamples[nAudioSampleID - 0x1],
-		m_pAE->listActiveSamples.back()
-	));
+	return(
+		AUDIO_DATA(
+			m_pAE->vecAudioSamples[nAudioSampleID - 0x1],
+			m_pAE->listActiveSamples.back()
+		)
+	);
 }
 
 
 
 AudioPlayer::ActivePlayingAudio::ActivePlayingAudio(AUDIOID nAudioSampleID,
-	pAudioPlayer pAP) : AudioEngine::PlayingAudio(nAudioSampleID), m_pAP(pAP)
+	pAudioPlayer pAP) : PlayingAudio(nAudioSampleID), m_pAP(pAP)
 {
 	m_dSamplePosition = 0.0;
 	m_bFinish = false;
@@ -39,11 +41,12 @@ float AudioPlayer::ActivePlayingAudio::ProcessAudioSample(int nChannel,
 		const std::shared_ptr<AudioEngine::AudioSample>& pS
 )
 {
-	float fResult = 0.f; 
+	float fResult = 0.f;
 	if (m_bFinish) { goto linkExit; }
-
 	fResult = m_pAP->AudioHandler
-		(nChannel, fGlobalTime, fTimeStep, fMixerSample, pS);
+		(nChannel, fGlobalTime, fTimeStep,
+			fMixerSample, pS.get(), this
+		);
 linkExit:
 	return(fResult);
 }

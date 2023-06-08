@@ -9,8 +9,8 @@ class MainAudioPlayer :
 {
 
 public:
-	MainAudioPlayer(pAudioEngine pAE,
-		AUDIOID nAudioSampleID);
+	MainAudioPlayer
+		(pAudioEngine pAE);
 	~MainAudioPlayer(void);
 
 	MainAudioPlayer(const MainAudioPlayer& ae) = delete;
@@ -20,9 +20,14 @@ public:
 		FileName(void) const;
 
 	enum {
-		STATE_PLAY = 0x0,
-		STATE_STOP = 0x0
+		STATE_STOP = 0x0,
+		STATE_PLAY = 0x1
 	};
+
+	AUDIOID LoadAudio(AUDIOID ID);
+	bool ChangeCurrentAudio
+		(AUDIOID ID);
+	AUDIOID CurrentAudio(void) const;
 
 	void ChangeStateAudio
 		(bool bState);
@@ -51,7 +56,7 @@ public:
 private:
 	mutable std::vector
 		<AUDIO_DATA> m_vecAudio;
-	mutable AUDIOID m_nCurrentAudio = -0x1;
+	mutable std::atomic<AUDIOID> m_nCurrentAudio = -0x1;
 
 	std::atomic<bool> m_bState = 0x0;
 	std::atomic<float>
@@ -60,7 +65,7 @@ private:
 
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
-		const std::shared_ptr<AudioEngine::AudioSample>& pS
+			const pAudioSample pS, const pPlayingAudio pA
 	);
 
 	AUDIO_DATA&

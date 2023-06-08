@@ -4,34 +4,57 @@
 #include "audio_sample.h"
 #include "playing_audio.h"
 
-MainAudioPlayer::MainAudioPlayer(pAudioEngine pAE,
-	AUDIOID nAudioSampleID) : AudioPlayer(pAE, nAudioSampleID)
+MainAudioPlayer::MainAudioPlayer(pAudioEngine pAE) :
+	AudioPlayer(pAE)
 {
-	AUDIO_DATA ad = CreateAudio
-		(nAudioSampleID);
-
-	m_vecAudio.push_back(ad);
-	m_nCurrentAudio = m_vecAudio.size();
+	/*Code...*/
 }
 MainAudioPlayer::~MainAudioPlayer(void)
 {
-	AudioData().second.get()->m_bFinish = true;
+	/*Code...*/
 }
 
 AudioPlayer::AUDIO_DATA& MainAudioPlayer::AudioData(void) const
-{ return(m_vecAudio[m_nCurrentAudio - 0x1]); }
+{ return(m_vecAudio[m_nCurrentAudio.load() - 0x1]); }
 
 std::shared_ptr<AudioEngine::AudioSample>&
 	MainAudioPlayer::AudioSample(void) const
-{ return(m_vecAudio[m_nCurrentAudio - 0x1].first); }
+{ return(m_vecAudio[m_nCurrentAudio.load() - 0x1].first); }
 std::shared_ptr<AudioEngine::PlayingAudio>&
 	MainAudioPlayer::PlayingAudio(void) const
-{ return(m_vecAudio[m_nCurrentAudio - 0x1].second); }
+{ return(m_vecAudio[m_nCurrentAudio.load() - 0x1].second); }
 
+AUDIOID MainAudioPlayer::LoadAudio(AUDIOID ID) {
+	if (ID == -0x1)
+	{ return(ID); }
 
+	AUDIO_DATA ad = CreateAudio(ID);
 
-const wchar_t*MainAudioPlayer::FileName(void) const
-{ return(AudioSample().get()->m_wcWavFile); }
+	m_vecAudio.push_back(ad);
+	m_nCurrentAudio.store
+		(m_vecAudio.size());
+
+	m_bState.store(STATE_STOP);
+	return(m_nCurrentAudio.load());
+}
+
+bool MainAudioPlayer::ChangeCurrentAudio
+	(AUDIOID ID)
+{
+	bool bResult = 0x0;
+	if (ID < 0x0) { return(bResult); }
+	if (bResult = ((size_t)ID <= m_vecAudio.size()))
+		{ m_nCurrentAudio.store(ID); }
+	return(bResult);
+}
+
+AUDIOID MainAudioPlayer::CurrentAudio(void) const
+{ return(m_nCurrentAudio.load()); }
+
+const wchar_t*MainAudioPlayer::FileName(void) const {
+	if (m_nCurrentAudio.load() == -0x1) { return(NULL); }
+	return(AudioSample().get()->m_wcWavFile);
+}
 
 void MainAudioPlayer::SwapStateAudio(void)
 { m_bState = !m_bState; }
@@ -59,29 +82,40 @@ float MainAudioPlayer::CurrentPitch(void) const
 
 
 void MainAudioPlayer::PositonAudio(double dSamplePosition) {
+	if (m_nCurrentAudio.load() == -0x1) { return; }
 	dSamplePosition = Clip(dSamplePosition);
 	PlayingAudio().get()->m_dSamplePosition = (double)AudioSample().get()->
 		m_nSamples * dSamplePosition;
 }
 
-double MainAudioPlayer::CurrentPositonAudio(void) const
-{ return(PlayingAudio().get()->m_dSamplePosition / AudioSample().get()->m_nSamples); }
+double MainAudioPlayer::CurrentPositonAudio(void) const {
+	if (m_nCurrentAudio.load() == -0x1) { return(0.0); }
+	return(PlayingAudio().get()->m_dSamplePosition /
+		AudioSample().get()->m_nSamples
+	);
+}
 
-DWORD MainAudioPlayer::NumOfSamples(void) const
-{ return(AudioSample().get()->m_nSamples); }
+DWORD MainAudioPlayer::NumOfSamples(void) const {
+	if (m_nCurrentAudio.load() == -0x1) { return(0x0); }
+	return(AudioSample().get()->m_nSamples);
+}
 
-DWORD MainAudioPlayer::NumOfSamplesPerSec(void) const
-{ return(AudioSample().get()->wavHeader.nSamplesPerSec); }
+DWORD MainAudioPlayer::NumOfSamplesPerSec(void) const {
+	if (m_nCurrentAudio.load() == -0x1) { return(0x0); }
+	return(AudioSample().get()->wavHeader.nSamplesPerSec);
+}
 
 
 
 float MainAudioPlayer::AudioHandler(int nChannel,
 	float fGlobalTime, float fTimeStep, float fMixerSample,
-		const std::shared_ptr<AudioEngine::AudioSample>& pS
+		const pAudioSample pS, const pPlayingAudio pA
 )
 {
+	if (PlayingAudio().get() != pA)
+		{ return(fMixerSample); }
 	// Calculate sample position
-	if (m_bState != STATE_PLAY) {
+	if (m_bState.load() != STATE_STOP) {
 		PlayingAudio().get()->m_dSamplePosition.store(PlayingAudio().get()->m_dSamplePosition.load() +
 			(double)pS->wavHeader.nSamplesPerSec * m_fPitch.load() * fTimeStep
 		);
@@ -95,7 +129,7 @@ float MainAudioPlayer::AudioHandler(int nChannel,
 		) * m_fVolume.load();
 	}
 	else {
-		m_bState = STATE_STOP;
+		m_bState.store(STATE_STOP);
 		PlayingAudio().get()->m_dSamplePosition = 0.0;
 	} // Else sound has completed
 	return(fMixerSample);

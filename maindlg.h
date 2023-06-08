@@ -8,6 +8,8 @@ class AudioEngine;
 
 class Button;
 class StaticText;
+
+class Combobox;
 class Slider;
 
 #define _STRING_SIZE_ (size_t)256
@@ -24,7 +26,7 @@ class MainDlg :
 
 	wchar_t* m_wcWavFile = NULL;
 
-	bool NewAudioPlayer
+	bool NewAudioMusic
 		(AUDIOID nMusicID);
 
 	bool WavFileName
@@ -41,6 +43,9 @@ private:
 
 	std::unique_ptr
 		<Button> m_pPlay = nullptr;
+
+	std::unique_ptr
+		<Combobox> m_pPlayList = nullptr;
 
 	struct {
 		std::unique_ptr<StaticText>

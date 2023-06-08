@@ -2,6 +2,8 @@
 #include "resource.h"
 
 #include "control_button.h"
+#include "control_combobox.h"
+
 #include "control_static_text.h"
 #include "control_slider.h"
 
@@ -16,7 +18,8 @@
 MainDlg::MainDlg(LPWSTR dlgResName, const wchar_t* wcWavFile, AudioEngine& refAE) :
 	m_wcWavFile((wchar_t*)wcWavFile), m_refAE(refAE), BaseDlgBox(dlgResName)
 {
-	/*Code...*/
+	m_ap = std::make_unique
+		<MainAudioPlayer>(&m_refAE);
 }
 MainDlg::~MainDlg(void) { /*Code...*/ }
 
@@ -24,6 +27,9 @@ bool MainDlg::OnUserCreate(void) {
 	m_pPlay = std::make_unique
 		<Button>(m_hWnd, ID_PLAY, L"[...]"
 	);
+
+	m_pPlayList = std::make_unique
+		<Combobox>(m_hWnd, IDC_PLAYLIST);
 
 	m_conStaticText.pFileName = std::make_unique
 		<StaticText>(m_hWnd, IDC_FILE_NAME, L"[...]"
@@ -41,8 +47,11 @@ bool MainDlg::OnUserCreate(void) {
 
 	AUDIOID nMusic = m_refAE.
 		LoadAudioSample(m_wcWavFile);
-	if (nMusic != -(0x1))
-	{ (void)NewAudioPlayer(nMusic); }
+	if (nMusic != -(0x1)) {
+		m_ap.get()->LoadAudio(nMusic);
+		m_pPlayList.get()->
+			AddItemString(m_wcWavFile);
+	}
 
 	(void)SetTimer(m_hWnd,
 		_TIMER_MAIN_ID_, _TIMER_MAIN_ELAPSE_, NULL
@@ -52,12 +61,10 @@ bool MainDlg::OnUserCreate(void) {
 }
 bool MainDlg::OnUserDestroy(void) { return(true); }
 
-bool MainDlg::NewAudioPlayer(AUDIOID nMusicID) {
-	bool bResult = 0x0;
-	if (m_ap.get()) { bResult = 0x1; }
-	std::unique_ptr<MainAudioPlayer> p = std::make_unique
-		<MainAudioPlayer>(&m_refAE, nMusicID);
-	m_ap.swap(p);
+bool MainDlg::NewAudioMusic(AUDIOID nMusicID) {
+	bool bResult = false;
+
+	m_ap.get()->LoadAudio(nMusicID);
 
 	m_conStaticText.pFileName.get()->
 		SetText(m_ap.get()->FileName());
@@ -86,27 +93,55 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 	case WM_COMMAND: {
 		UNREFERENCED_PARAMETER(lParam);
-		UINT nID = LOWORD(wParam);
+		UINT lwID = LOWORD(wParam);
 
-		switch (nID) {
+		switch (lwID) {
 		case ID_FILE: {
 			WCHAR wcFileName[_STRING_SIZE_] = { 0x0 };
 			BOOL bResult = WavFileName(wcFileName);
 
 			AUDIOID nMusic = m_refAE.
 				LoadAudioSample(wcFileName);
-			if (nMusic != -(0x1))
-			{ (void)NewAudioPlayer(nMusic); }
+			if (nMusic != -(0x1)) { (void)NewAudioMusic(nMusic);
+				m_pPlayList.get()->AddItemString(wcFileName);
+			}
 		} break;
 		case ID_PLAY: {
 			if (m_ap.get()) {
+				switch (m_ap.get()->CurrentStateAudio()) {
+					case MainAudioPlayer::STATE_PLAY:
+					{ m_pPlay.get()->SetText(L"Play"); } break;
+					case MainAudioPlayer::STATE_STOP:
+					{ m_pPlay.get()->SetText(L"Pause"); } break;
+				}
 				m_ap.get()->SwapStateAudio();
-				if (m_ap.get()->CurrentStateAudio() !=
-					MainAudioPlayer::STATE_PLAY
-				)
-				{ m_pPlay.get()->SetText(L"Pause"); }
-				else {
+			}
+		} break;
+
+
+
+		default:
+			break;
+		}
+
+		UINT hwID = HIWORD(wParam);
+
+		switch (hwID) {
+		case CBN_SELCHANGE: {
+			HWND hWndCombobox = (HWND)lParam;
+			if (m_ap.get() &&
+				hWndCombobox == m_pPlayList.get()->GetHandle()
+			)
+			{
+				DWORD dwID = m_pPlayList.get()->SelectedItemID() + 0x1;
+				if (m_ap.get()->CurrentAudio() != dwID) {
 					m_pPlay.get()->SetText(L"Play");
+					(void)m_ap.get()->ChangeCurrentAudio
+						((AUDIOID)dwID);
+
+					m_ap.get()->ChangeStateAudio
+						(MainAudioPlayer::STATE_STOP);
+					m_ap.get()->PositonAudio(0.0);
 				}
 			}
 		} break;
@@ -114,6 +149,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		default:
 			break;
 		}
+
 	} break;
 
 	case WM_HSCROLL: {
