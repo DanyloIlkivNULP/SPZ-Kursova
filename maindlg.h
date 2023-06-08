@@ -25,7 +25,7 @@ class MainDlg :
 	wchar_t* m_wcWavFile = NULL;
 
 	bool NewAudioMusic
-		(AUDIOID nMusicID);
+		(const wchar_t* wcWavFile);
 	bool ChangeAudioMusic
 		(AUDIOID nMusicID);
 public:

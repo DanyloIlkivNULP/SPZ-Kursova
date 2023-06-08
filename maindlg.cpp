@@ -49,13 +49,8 @@ bool MainDlg::OnUserCreate(void) {
 	m_conSlider.pPitch = std::make_unique
 		<Slider>(m_hWnd, IDC_PITCH, 0x2, POINT{ 0x1, 0x3 });
 
-	AUDIOID nMusic = m_refAE.
-		LoadAudioSample(m_wcWavFile);
-	if (nMusic != -(0x1)) {
-		(bool)NewAudioMusic(nMusic);
-		m_pPlayList.get()->
-			AddItemString(m_wcWavFile);
-	}
+	
+
 
 	(void)SetTimer(m_hWnd,
 		_TIMER_MAIN_ID_, _TIMER_MAIN_ELAPSE_, NULL
@@ -65,13 +60,18 @@ bool MainDlg::OnUserCreate(void) {
 }
 bool MainDlg::OnUserDestroy(void) { return(true); }
 
-bool MainDlg::NewAudioMusic(AUDIOID nMusicID) {
-	bool bResult = false;
+bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
+	AUDIOID nMusicID = m_refAE.
+		LoadAudioSample(wcWavFile);
+	if (nMusicID == -(0x1)) { return(false); }
 
 	m_ap.get()->LoadAudio(nMusicID);
 
 	m_conStaticText.pFileName.get()->
 		SetText(m_ap.get()->FileName());
+
+	m_pPlayList.get()->
+		AddItemString(wcWavFile);
 
 	const wchar_t* wcState[] = { L"Play", L"Pause" };
 	m_pPlay.get()->SetText
@@ -86,7 +86,9 @@ bool MainDlg::NewAudioMusic(AUDIOID nMusicID) {
 			m_conSlider.pPitch.get()->GetRangeParam().x) * 0.5f)
 	);
 
-	return(bResult);
+	(void)NewAudioMusic(m_wcWavFile);
+
+	return(true);
 }
 
 bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
@@ -128,11 +130,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			WCHAR wcFileName[MAX_PATH] = { 0x0 };
 			BOOL bResult = WavFileName(wcFileName);
 
-			AUDIOID nMusic = m_refAE.
-				LoadAudioSample(wcFileName);
-			if (nMusic != -(0x1)) { (void)NewAudioMusic(nMusic);
-				m_pPlayList.get()->AddItemString(wcFileName);
-			}
+			(void)NewAudioMusic(wcFileName);
 		} break;
 		case ID_PLAY: {
 			if (m_ap.get() &&
@@ -286,12 +284,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				DragQueryFile(hDrop,
 					i, wcFileName, MAX_PATH
 				);
-				AUDIOID nMusic = m_refAE.
-					LoadAudioSample(wcFileName);
-				if (nMusic != -(0x1)) {
-					(void)NewAudioMusic(nMusic);
-					m_pPlayList.get()->AddItemString(wcFileName);
-				}
+				(void)NewAudioMusic(wcFileName);
 				ZeroMemory(&wcFileName,
 					sizeof(wcFileName)
 				);
