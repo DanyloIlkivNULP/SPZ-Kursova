@@ -17,6 +17,9 @@
 #define _FILE_FORMAT_ L"*.wav\n"
 #define _NULL_STRING_ L"[NULL_STATE]"
 
+#define _NULL_DURATION_ L"00:00:00"
+#define _DURATION_ L"%02i:%02i:%02i"
+
 MainDlg::MainDlg(LPWSTR dlgResName, const wchar_t* wcWavFile, AudioEngine& refAE) :
 	m_wcWavFile((wchar_t*)wcWavFile), m_refAE(refAE), m_audioPlayer(&m_refAE), BaseDlgBox(dlgResName)
 {
@@ -46,7 +49,7 @@ bool MainDlg::OnUserCreate(void) {
 	);
 	m_conStaticText.pDuration = std::make_unique
 		<StaticText>(m_hWnd, IDC_DURATION,
-			L"00:00:00", 0x0
+			_NULL_DURATION_, 0x0
 	);
 
 	m_conSlider.pAudioTrack = std::make_unique
@@ -130,7 +133,7 @@ bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
 
 	m_conStaticText.pDuration.get()->
 		ChangeState(nMusicID != -0x1);
-	m_conStaticText.pDuration.get()->SetText(L"00:00:00");
+	m_conStaticText.pDuration.get()->SetText(_NULL_DURATION_);
 
 	m_audioPlayer.VolumeAudio(
 		(float)(m_conSlider.pVolume.get()->GetRange() - m_conSlider.pVolume.get()->GetPos()) /
@@ -384,6 +387,6 @@ void MainDlg::AudioDuration(wchar_t wcAudioDuration[MAX_PATH],
 
 	ZeroMemory(wcAudioDuration,
 		sizeof(wchar_t) * MAX_PATH);
-	(void)swprintf_s((wchar_t*)wcAudioDuration, MAX_PATH, L"%02i:%02i:%02i",
+	(void)swprintf_s((wchar_t*)wcAudioDuration, MAX_PATH, _DURATION_,
 		sElapsedHour % 60, sElapsedMin % 60, sElapsedSec % 60);
 }
