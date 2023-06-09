@@ -12,15 +12,14 @@ class StaticText;
 class Combobox;
 class Slider;
 
-class MainAudioPlayer;
+#include "main_audio_player.h"
 
 class MainDlg : 
 	public BaseDlgBox
 {
 	AudioEngine& m_refAE;
 
-	std::unique_ptr
-		<MainAudioPlayer> m_ap = nullptr;
+	MainAudioPlayer m_audioPlayer;
 
 	wchar_t* m_wcWavFile = NULL;
 

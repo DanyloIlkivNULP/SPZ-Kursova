@@ -9,8 +9,8 @@ class StaticText :
 {
 	wchar_t m_wcText[MAX_PATH]{};
 public:
-	StaticText(HWND hParent,
-		DWORD dwDlgItem, const wchar_t* wcText);
+	StaticText(HWND hParent, DWORD dwDlgItem,
+		const wchar_t* wcText, bool bState = STATE_ENABLE);
 	~StaticText(void);
 
 	const wchar_t* GetText(void);

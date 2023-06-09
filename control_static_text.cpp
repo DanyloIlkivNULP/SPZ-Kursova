@@ -1,9 +1,11 @@
 #include "control_static_text.h"
 
 StaticText::StaticText(HWND hParent, DWORD dwDlgItem,
-	const wchar_t* wcText) : Control(hParent, dwDlgItem)
+	const wchar_t* wcText, bool bState) : Control(hParent, dwDlgItem, bState)
 {
-	(void)wcscpy_s(m_wcText, MAX_PATH, wcText);
+	if (wcText == NULL)
+	{ wcText = (wchar_t*)L'\0'; }
+	wcscpy_s(m_wcText, MAX_PATH, wcText);
 	(void)SetWindowText(m_hWnd,
 		m_wcText
 	);
@@ -14,6 +16,9 @@ const wchar_t* StaticText::GetText(void)
 { return(m_wcText); }
 
 void StaticText::SetText(const wchar_t* wcText) {
+	if (wcText == NULL)
+	{ wcText = (wchar_t*)L'\0'; }
+
 	if (wcslen(m_wcText) != NULL)
 	{ ZeroMemory(m_wcText,
 		sizeof(wchar_t) * MAX_PATH);

@@ -9,8 +9,8 @@ class Button :
 {
 	wchar_t m_wcText[MAX_PATH]{};
 public:
-	Button(HWND hParent,
-		DWORD dwDlgItem, const wchar_t* wcText);
+	Button(HWND hParent, DWORD dwDlgItem,
+		const wchar_t* wcText, bool bState = STATE_ENABLE);
 	~Button(void);
 
 	const wchar_t* GetText(void);

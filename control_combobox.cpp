@@ -1,7 +1,9 @@
 #include "control_combobox.h"
 
-Combobox::Combobox(HWND hParent, DWORD dwDlgItem) :
-	Control(hParent, dwDlgItem)
+Combobox::Combobox(HWND hParent, DWORD dwDlgItem,
+	bool bState
+) :
+	Control(hParent, dwDlgItem, bState)
 {
 	/*Code...*/
 }
@@ -33,13 +35,17 @@ const wchar_t* Combobox::ItemString(INT ID) {
 	return(m_wsText.data());
 }
 INT Combobox::SelectedItemID(void) {
-	INT ID = -0x1;
+	INT ID = CB_ERR;
 	ID = (INT)SendMessage(m_hWnd,
 		CB_GETCURSEL, NULL, NULL
 	);
-	INT iCnt = CB_ERR;
-	iCnt = SendMessage(m_hWnd,
-		CB_GETCURSEL, NULL, NULL
-	);
 	return(ID);
+}
+
+INT Combobox::SelectItem(INT ID) {
+	INT iResult = CB_ERR;
+	iResult = SendMessage(m_hWnd,
+		CB_SETCURSEL, ID, 0x0
+	);
+	return(iResult);
 }

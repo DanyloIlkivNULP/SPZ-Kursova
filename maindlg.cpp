@@ -8,7 +8,6 @@
 #include "control_slider.h"
 
 #include "audio_engine.h"
-#include "main_audio_player.h"
 
 #include "logger.h"
 
@@ -16,13 +15,12 @@
 #define _TIMER_MAIN_ELAPSE_ (INT)128
 
 #define _FILE_FORMAT_ L"*.wav\n"
-#define _NULL_STRING_ L"[...]"
+#define _NULL_STRING_ L"[NULL_STATE]"
 
 MainDlg::MainDlg(LPWSTR dlgResName, const wchar_t* wcWavFile, AudioEngine& refAE) :
-	m_wcWavFile((wchar_t*)wcWavFile), m_refAE(refAE), BaseDlgBox(dlgResName)
+	m_wcWavFile((wchar_t*)wcWavFile), m_refAE(refAE), m_audioPlayer(&m_refAE), BaseDlgBox(dlgResName)
 {
-	m_ap = std::make_unique
-		<MainAudioPlayer>(&m_refAE);
+	/*Code...*/
 }
 MainDlg::~MainDlg(void) { /*Code...*/ }
 
@@ -30,20 +28,25 @@ bool MainDlg::OnUserCreate(void) {
 	DragAcceptFiles
 		(m_hWnd, TRUE);
 	m_pPlay = std::make_unique
-		<Button>(m_hWnd, ID_PLAY, _NULL_STRING_
+		<Button>(m_hWnd, ID_PLAY,
+			_NULL_STRING_, 0x0
 	);
 
 	m_pPlayList = std::make_unique
-		<Combobox>(m_hWnd, IDC_PLAYLIST);
+		<Combobox>(m_hWnd, IDC_PLAYLIST, 0x0
+	);
 
 	m_conStaticText.pInfo = std::make_unique
-		<StaticText>(m_hWnd, IDC_INFO, _NULL_STRING_
+		<StaticText>(m_hWnd, IDC_INFO,
+			_NULL_STRING_, 0x0
 	);
 	m_conStaticText.pFileName = std::make_unique
-		<StaticText>(m_hWnd, IDC_FILE_NAME, _NULL_STRING_
+		<StaticText>(m_hWnd, IDC_FILE_NAME,
+			_NULL_STRING_, 0x0
 	);
 	m_conStaticText.pDuration = std::make_unique
-		<StaticText>(m_hWnd, IDC_DURATION, L"00:00:00"
+		<StaticText>(m_hWnd, IDC_DURATION,
+			L"00:00:00", 0x0
 	);
 
 	m_conSlider.pAudioTrack = std::make_unique
@@ -73,29 +76,18 @@ bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
 		L"Failed to Load File!"); return(false);
 	}
 
-	m_ap.get()->LoadAudio(nMusicID);
+	AUDIOID ID = m_audioPlayer.
+		LoadAudio(nMusicID);
+	(void)ChangeAudioMusic(ID);
 
-	m_conStaticText.pFileName.get()->
-		SetText(m_ap.get()->FileName());
+	WCHAR wcFileName[MAX_PATH];
+	WCHAR wcExt[MAX_PATH];
+
+	_wsplitpath_s(wcWavFile, NULL, 0x0, NULL, 0x0, wcFileName, MAX_PATH, wcExt, MAX_PATH);
 
 	m_pPlayList.get()->
-		AddItemString(wcWavFile);
-
-	std::wstring wsInfo = L"Info...";
-	m_conStaticText.pInfo.get()->SetText(wsInfo.data());
-
-	WCHAR* wcState[0x2] = { (wchar_t*)L"Play", (wchar_t*)L"Pause" };
-	m_pPlay.get()->SetText
-		(wcState[m_ap.get()->CurrentStateAudio()]);
-
-	m_ap.get()->VolumeAudio(
-		(float)(m_conSlider.pVolume.get()->GetRange() - m_conSlider.pVolume.get()->GetPos()) /
-		m_conSlider.pVolume.get()->GetRange()
-	);
-	m_ap.get()->PitchAudio(
-		((m_conSlider.pPitch.get()->GetRangeParam().y - m_conSlider.pPitch.get()->GetPos() +
-			m_conSlider.pPitch.get()->GetRangeParam().x) * 0.5f)
-	);
+		AddItemString(wcFileName);
+	m_pPlayList.get()->ChangeState(0x1);
 
 	return(true);
 }
@@ -105,20 +97,49 @@ bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
 
 	if (nMusicID != -0x1)
 		{ bResult = true; }
-	(void)m_ap.get()->
+	(void)m_audioPlayer.
 		ChangeCurrentAudio(nMusicID);
 
-	m_ap.get()->ChangeStateAudio
+	m_audioPlayer.ChangeStateAudio
 		(MainAudioPlayer::STATE_STOP);
-	m_ap.get()->PositonAudio(NULL);
+	m_audioPlayer.PositonAudio(NULL);
 
 	m_conStaticText.pFileName.get()->
-		SetText(m_ap.get()->FileName());
+		ChangeState(nMusicID != -0x1);
+	m_conStaticText.pFileName.get()->
+		SetText(nMusicID != -0x1 ? m_audioPlayer.FileName() : _NULL_STRING_);
 
+	if (nMusicID == -0x1)
+	{ m_pPlayList.get()->
+		SelectItem(-0x1);
+	}
+
+	m_conStaticText.pInfo.get()->
+		ChangeState(nMusicID != -0x1);
 	std::wstring wsInfo = L"Info...";
-	m_conStaticText.pInfo.get()->SetText(wsInfo.data());
+	m_conStaticText.pInfo.get()->SetText(nMusicID != -0x1 ? wsInfo.data() : _NULL_STRING_);
 
-	m_pPlay.get()->SetText(L"Play");
+	m_pPlay.get()->
+		ChangeState(nMusicID != -0x1);
+	WCHAR* wcState[0x2] = { (wchar_t*)L"Play", (wchar_t*)L"Pause" };
+	m_pPlay.get()->SetText
+		(nMusicID != -0x1 ?
+			wcState[m_audioPlayer.CurrentStateAudio()] :
+			_NULL_STRING_
+		);
+
+	m_conStaticText.pDuration.get()->
+		ChangeState(nMusicID != -0x1);
+	m_conStaticText.pDuration.get()->SetText(L"00:00:00");
+
+	m_audioPlayer.VolumeAudio(
+		(float)(m_conSlider.pVolume.get()->GetRange() - m_conSlider.pVolume.get()->GetPos()) /
+			m_conSlider.pVolume.get()->GetRange()
+	);
+	m_audioPlayer.PitchAudio(
+		((m_conSlider.pPitch.get()->GetRangeParam().y - m_conSlider.pPitch.get()->GetPos() +
+			m_conSlider.pPitch.get()->GetRangeParam().x) * 0.5f)
+	);
 
 	return(bResult);
 }
@@ -143,18 +164,17 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				(wcFileName);
 			}
 		} break;
+		case ID_X:
+		{ (void)ChangeAudioMusic(-0x1); } break;
 		case ID_PLAY: {
-			if (m_ap.get() &&
-				(m_ap.get()->CurrentAudio() != -0x1)
-			)
-			{
-				switch (m_ap.get()->CurrentStateAudio()) {
+			if (m_audioPlayer.CurrentAudio() != -0x1) {
+				switch (m_audioPlayer.CurrentStateAudio()) {
 					case MainAudioPlayer::STATE_PLAY:
 					{ m_pPlay.get()->SetText(L"Play"); } break;
 					case MainAudioPlayer::STATE_STOP:
 					{ m_pPlay.get()->SetText(L"Pause"); } break;
 				}
-				m_ap.get()->SwapStateAudio();
+				m_audioPlayer.SwapStateAudio();
 			}
 		} break;
 
@@ -169,12 +189,10 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		switch (hwID) {
 		case CBN_SELCHANGE: {
 			HWND hWndCombobox = (HWND)lParam;
-			if (m_ap.get() &&
-				hWndCombobox == m_pPlayList.get()->GetHandle()
-			)
+			if (hWndCombobox == m_pPlayList.get()->GetHandle())
 			{
 				INT ID = m_pPlayList.get()->SelectedItemID() + 0x1;
-				if (m_ap.get()->CurrentAudio() != ID) {
+				if (m_audioPlayer.CurrentAudio() != ID) {
 					(void)ChangeAudioMusic(ID);
 				}
 			}
@@ -188,25 +206,23 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 	case WM_HSCROLL: {
 		HWND hWndTrack = (HWND)lParam;
-		if (m_ap.get() &&
-			hWndTrack == m_conSlider.pAudioTrack.get()->GetHandle()
-		)
+		if (hWndTrack == m_conSlider.pAudioTrack.get()->GetHandle())
 		{
 			if (LOWORD(wParam) != SB_ENDSCROLL &&
 				LOWORD(wParam) != SB_THUMBPOSITION)
 			{
 				DWORD dwPos = m_conSlider.pAudioTrack.get()->GetPos();
-				m_ap.get()->PositonAudio(dwPos /
+				m_audioPlayer.PositonAudio(dwPos /
 					(float)m_conSlider.pAudioTrack.get()->GetRange());
 				m_bHold = 0x1;
 
 				WCHAR wcDur[MAX_PATH] = { 0x0 };
 
-				double dCurrentPositionAudio = m_ap.get()->
+				double dCurrentPositionAudio = m_audioPlayer.
 					CurrentPositonAudio();
-				float fNumOfSamples = (float)m_ap.get()->
+				float fNumOfSamples = (float)m_audioPlayer.
 					NumOfSamples();
-				float fNumOfSamplesPerSec = (float)m_ap.get()->
+				float fNumOfSamplesPerSec = (float)m_audioPlayer.
 					NumOfSamplesPerSec();
 
 				AudioDuration(wcDur,
@@ -218,23 +234,19 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 	} break;
 	case WM_VSCROLL: {
 		HWND hWndTrack = (HWND)lParam;
-		if (m_ap.get() &&
-			hWndTrack == m_conSlider.pVolume.get()->GetHandle()
-		)
+		if (hWndTrack == m_conSlider.pVolume.get()->GetHandle())
 		{
 			if (LOWORD(wParam) != SB_ENDSCROLL) {
 				DWORD dwPos = m_conSlider.pVolume.get()->GetPos();
-				m_ap.get()->VolumeAudio((float)(m_conSlider.pVolume.get()->GetRange() - dwPos) /
+				m_audioPlayer.VolumeAudio((float)(m_conSlider.pVolume.get()->GetRange() - dwPos) /
 					m_conSlider.pVolume.get()->GetRange());
 			}
 		}
-		if (m_ap.get() &&
-			hWndTrack == m_conSlider.pPitch.get()->GetHandle()
-		)
+		if (hWndTrack == m_conSlider.pPitch.get()->GetHandle())
 		{
 			if (LOWORD(wParam) != SB_ENDSCROLL) {
 				DWORD dwPos = m_conSlider.pPitch.get()->GetPos();
-				m_ap.get()->PitchAudio(
+				m_audioPlayer.PitchAudio(
 				((m_conSlider.pPitch.get()->GetRangeParam().y - dwPos +
 					m_conSlider.pPitch.get()->GetRangeParam().x) * 0.5f)
 				);
@@ -249,27 +261,28 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 		case _TIMER_MAIN_ID_: {
 			if (m_bHold) { break; }
-			if (m_ap.get()) {
+			if (m_audioPlayer.CurrentAudio() != -0x1) {
 				if (m_conSlider.pAudioTrack.get()->GetPos() ==
 					m_conSlider.pAudioTrack.get()->GetRange()
 				)
-				{ m_ap.get()->PositonAudio(0.0);
-					m_ap.get()->ChangeStateAudio
-						(MainAudioPlayer::STATE_STOP);
+				{
+					m_audioPlayer.PositonAudio(0.0);
+					m_audioPlayer.ChangeStateAudio
+					(MainAudioPlayer::STATE_STOP);
 					m_pPlay.get()->SetText(L"Play");
 				}
 				m_conSlider.pAudioTrack.get()->SetPos
-				((DWORD)(m_ap.get()->CurrentPositonAudio() *
+				((DWORD)(m_audioPlayer.CurrentPositonAudio() *
 					m_conSlider.pAudioTrack.get()->GetRange())
 				);
 
 				WCHAR wcDur[MAX_PATH] = { 0x0 };
 
-				double dCurrentPositionAudio = m_ap.get()->
+				double dCurrentPositionAudio = m_audioPlayer.
 					CurrentPositonAudio();
-				float fNumOfSamples = (float)m_ap.get()->
+				float fNumOfSamples = (float)m_audioPlayer.
 					NumOfSamples();
-				float fNumOfSamplesPerSec = (float)m_ap.get()->
+				float fNumOfSamplesPerSec = (float)m_audioPlayer.
 					NumOfSamplesPerSec();
 
 				AudioDuration(wcDur,

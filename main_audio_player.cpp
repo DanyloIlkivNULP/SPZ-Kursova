@@ -50,7 +50,7 @@ AUDIOID MainAudioPlayer::LoadAudio(AUDIOID ID) {
 	m_nCurrentAudio.store
 		(m_vecAudio.size());
 
-	m_bState.store(STATE_STOP);
+	m_nState.store(STATE_STOP);
 	return(m_nCurrentAudio.load());
 }
 
@@ -61,8 +61,7 @@ bool MainAudioPlayer::ChangeCurrentAudio
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
-	if (ID < 0x0) { return(bResult); }
-	if (bResult = ((size_t)ID <= m_vecAudio.size()))
+	if (bResult = (ID <= (AUDIOID)m_vecAudio.size()))
 		{ m_nCurrentAudio.store(ID); }
 	return(bResult);
 }
@@ -81,11 +80,13 @@ const wchar_t* MainAudioPlayer::FileName(void) const {
 }
 
 void MainAudioPlayer::SwapStateAudio(void)
-{ m_bState = !m_bState; }
-void MainAudioPlayer::ChangeStateAudio(bool bState)
-{ m_bState = bState; }
-bool MainAudioPlayer::CurrentStateAudio(void) const
-{ return(m_bState.load()); }
+{ if (m_nState.load() != STATE_NULL)
+	{ m_nState = !m_nState; }
+}
+void MainAudioPlayer::ChangeStateAudio(int nState)
+{ m_nState.store(nState); }
+int MainAudioPlayer::CurrentStateAudio(void) const
+{ return(m_nState.load()); }
 
 
 
@@ -155,10 +156,12 @@ float MainAudioPlayer::AudioHandler(int nChannel,
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
+	if (m_nCurrentAudio.load() == -0x1)
+		{ return(fMixerSample); }
 	if (PlayingAudio().get() != pA)
 		{ return(fMixerSample); }
 	// Calculate sample position
-	if (m_bState.load() != STATE_STOP) {
+	if (m_nState.load() != STATE_STOP) {
 		PlayingAudio().get()->m_dSamplePosition.store(PlayingAudio().get()->m_dSamplePosition.load() +
 			(double)pS->wavHeader.nSamplesPerSec * m_fPitch.load() * fTimeStep
 		);

@@ -20,8 +20,9 @@ public:
 		FileName(void) const;
 
 	enum {
+		STATE_PLAY = 0x1,
 		STATE_STOP = 0x0,
-		STATE_PLAY = 0x1
+		STATE_NULL = -0x1
 	};
 
 	AUDIOID LoadAudio(AUDIOID ID);
@@ -30,9 +31,9 @@ public:
 	AUDIOID CurrentAudio(void) const;
 
 	void ChangeStateAudio
-		(bool bState);
+		(int nState);
 	void SwapStateAudio(void);
-	bool CurrentStateAudio
+	int CurrentStateAudio
 		(void) const;
 
 	void VolumeAudio
@@ -58,7 +59,7 @@ private:
 		<AUDIO_DATA> m_vecAudio;
 	mutable std::atomic<AUDIOID> m_nCurrentAudio = -0x1;
 
-	std::atomic<bool> m_bState = 0x0;
+	std::atomic<int> m_nState = STATE_NULL;
 	std::atomic<float>
 		m_fVolume = 1.f,
 		m_fPitch = 1.f;
