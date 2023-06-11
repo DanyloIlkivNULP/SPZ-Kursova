@@ -9,14 +9,23 @@ Combobox::Combobox(HWND hParent, DWORD dwDlgItem,
 }
 Combobox::~Combobox(void) { /*Code...*/ }
 
+INT Combobox::CountOfItems(void) {
+	INT iCount = CB_ERR;
+	iCount = SendMessage(m_hWnd,
+		CB_GETCOUNT, 0x0, 0x0
+	);
+	return(iCount);
+}
+
 void Combobox::AddItemString
 	(const wchar_t* wcString)
 {
 	SendMessage(m_hWnd,
 		CB_ADDSTRING, NULL, (LPARAM)wcString
 	);
+	INT iCount = CountOfItems();
 	SendMessage(m_hWnd,
-		CB_SETCURSEL, m_iIndex += 0x1, 0x0
+		CB_SETCURSEL, iCount - 0x1, 0x0
 	);
 }
 const wchar_t* Combobox::ItemString(INT ID) {

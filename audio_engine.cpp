@@ -119,7 +119,7 @@ void AudioEngine::waveOutProc(HWAVEOUT hWaveOut, UINT uMsg, DWORD dwParam1, DWOR
 	{
 	case WOM_OPEN:
 	{ /*Code...*/ } break;
-	case WM_CLOSE:
+	case WOM_CLOSE:
 	{ /*Code...*/ } break;
 
 	case WOM_DONE: {

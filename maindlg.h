@@ -25,8 +25,9 @@ class MainDlg :
 
 	bool NewAudioMusic
 		(const wchar_t* wcWavFile);
-	bool ChangeAudioMusic
-		(AUDIOID nMusicID);
+	bool ChangeAudioMusic(
+		AUDIOID nMusicID
+	);
 public:
 	MainDlg(LPWSTR dlgResName,
 		const wchar_t* wcWavFile, AudioEngine& refAE);
@@ -37,8 +38,17 @@ private:
 
 	bool OnUserCreate(void); bool OnUserDestroy(void);
 
+	enum {
+		PB_STATE_STOP = 0x0,
+		PB_STATE_REPEAT = 0x1,
+		PB_STATE_CONTINUE = 0x2
+	};
+	INT m_iPB = 0x0;
+
 	std::unique_ptr
 		<Button> m_pPlay = nullptr;
+	std::unique_ptr
+		<Button> m_pPBState = nullptr;
 
 	std::unique_ptr
 		<Combobox> m_pPlayList = nullptr;

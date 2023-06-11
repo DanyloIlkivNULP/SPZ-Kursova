@@ -83,9 +83,9 @@ void MainAudioPlayer::SwapStateAudio(void)
 { if (m_nState.load() != STATE_NULL)
 	{ m_nState = !m_nState; }
 }
-void MainAudioPlayer::ChangeStateAudio(int nState)
+void MainAudioPlayer::ChangeStateAudio(signed int nState)
 { m_nState.store(nState); }
-int MainAudioPlayer::CurrentStateAudio(void) const
+signed int MainAudioPlayer::CurrentStateAudio(void) const
 { return(m_nState.load()); }
 
 

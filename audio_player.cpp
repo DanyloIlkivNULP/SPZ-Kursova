@@ -17,7 +17,7 @@ AudioPlayer::AUDIO_DATA AudioPlayer::CreateAudio
 		lgProcessAudio(m_pAE->m_muxProcessAudio);
 
 	m_pAE->CreatePlayingAudio
-		<ActivePlayingAudio>(nAudioSampleID, this);
+		<AudioPlayerHandler>(nAudioSampleID, this);
 	return(
 		AUDIO_DATA(
 			m_pAE->vecAudioSamples[nAudioSampleID - 0x1],
@@ -28,15 +28,15 @@ AudioPlayer::AUDIO_DATA AudioPlayer::CreateAudio
 
 
 
-AudioPlayer::ActivePlayingAudio::ActivePlayingAudio(AUDIOID nAudioSampleID,
+AudioPlayer::AudioPlayerHandler::AudioPlayerHandler(AUDIOID nAudioSampleID,
 	pAudioPlayer pAP) : PlayingAudio(nAudioSampleID), m_pAP(pAP)
 {
 	m_dSamplePosition = 0.0;
 	m_bFinish = false;
 }
-AudioPlayer::ActivePlayingAudio::~ActivePlayingAudio(void) { /*Code...*/ }
+AudioPlayer::AudioPlayerHandler::~AudioPlayerHandler(void) { /*Code...*/ }
 
-float AudioPlayer::ActivePlayingAudio::ProcessAudioSample(int nChannel,
+float AudioPlayer::AudioPlayerHandler::ProcessAudioSample(int nChannel,
 	float fGlobalTime, float fTimeStep, float fMixerSample,
 		const std::shared_ptr<AudioEngine::AudioSample>& pS
 )

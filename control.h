@@ -11,7 +11,7 @@ public:
 		DWORD dwDlgItem);
 	Control(HWND hParent,
 		DWORD dwDlgItem, BOOL bState);
-	~Control(void);
+	virtual ~Control(void) = 0x0;
 
 	HWND GetHandle(void) const;
 	DWORD GetItemID(void) const;

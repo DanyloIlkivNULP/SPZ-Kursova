@@ -7,7 +7,6 @@
 class Combobox :
 	public Control
 {
-	INT m_iIndex = -0x1;
 	std::wstring m_wsText;
 public:
 	Combobox(HWND hParent, DWORD dwDlgItem,
@@ -15,6 +14,7 @@ public:
 	);
 	~Combobox(void);
 
+	INT CountOfItems(void);
 	void AddItemString
 		(const wchar_t* wcString);
 	const wchar_t* ItemString(INT ID);

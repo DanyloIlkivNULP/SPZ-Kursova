@@ -1,4 +1,4 @@
-#include "maindlg.h"
+﻿#include "maindlg.h"
 #include "resource.h"
 
 #include "control_button.h"
@@ -30,6 +30,11 @@ MainDlg::~MainDlg(void) { /*Code...*/ }
 bool MainDlg::OnUserCreate(void) {
 	DragAcceptFiles
 		(m_hWnd, TRUE);
+	m_pPBState = std::make_unique
+		<Button>(m_hWnd, ID_PB_STATE,
+			L"[/]", 0x1
+	);
+
 	m_pPlay = std::make_unique
 		<Button>(m_hWnd, ID_PLAY,
 			_NULL_STRING_, 0x0
@@ -81,6 +86,8 @@ bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
 
 	AUDIOID ID = m_audioPlayer.
 		LoadAudio(nMusicID);
+	m_audioPlayer.ChangeStateAudio
+		(MainAudioPlayer::STATE_STOP);
 	(void)ChangeAudioMusic(ID);
 
 	WCHAR wcFileName[MAX_PATH];
@@ -95,7 +102,10 @@ bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
 	return(true);
 }
 
-bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
+bool MainDlg::ChangeAudioMusic(
+	AUDIOID nMusicID
+)
+{
 	bool bResult = false;
 
 	if (nMusicID != -0x1)
@@ -103,8 +113,6 @@ bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
 	(void)m_audioPlayer.
 		ChangeCurrentAudio(nMusicID);
 
-	m_audioPlayer.ChangeStateAudio
-		(MainAudioPlayer::STATE_STOP);
 	m_audioPlayer.PositonAudio(NULL);
 
 	m_conStaticText.pFileName.get()->
@@ -112,10 +120,10 @@ bool MainDlg::ChangeAudioMusic(AUDIOID nMusicID) {
 	m_conStaticText.pFileName.get()->
 		SetText(nMusicID != -0x1 ? m_audioPlayer.FileName() : _NULL_STRING_);
 
-	if (nMusicID == -0x1)
-	{ m_pPlayList.get()->
-		SelectItem(-0x1);
-	}
+	m_pPlayList.get()->
+		SelectItem(nMusicID != -0x1 ?
+			nMusicID - 0x1 : -0x1
+		);
 
 	m_conStaticText.pInfo.get()->
 		ChangeState(nMusicID != -0x1);
@@ -167,8 +175,6 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				(wcFileName);
 			}
 		} break;
-		case ID_X:
-		{ (void)ChangeAudioMusic(-0x1); } break;
 		case ID_PLAY: {
 			if (m_audioPlayer.CurrentAudio() != -0x1) {
 				switch (m_audioPlayer.CurrentStateAudio()) {
@@ -180,8 +186,27 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				m_audioPlayer.SwapStateAudio();
 			}
 		} break;
+		case ID_PB_STATE: {
+			m_iPB = (m_iPB + 0x1) % 0x3;
+			WCHAR* wcState[0x3] = {
+				(wchar_t*)L"[/]",
+				(wchar_t*)L"[∞]",
+				(wchar_t*)L"[→]"
+			};
+			m_pPBState.get()->SetText(wcState[m_iPB]);
+		} break;
+		case ID_X: {
+			m_audioPlayer.ChangeStateAudio
+				(MainAudioPlayer::STATE_STOP);
+			(void)ChangeAudioMusic(-0x1);
+		} break;
 
-
+		case ID_HIDE_WINDOW: {
+			BOOL bVisible = IsWindowVisible(m_hWnd);
+			ShowWindow(m_hWnd, !bVisible ?
+				SW_MAXIMIZE : SW_MINIMIZE
+			);
+		} break;
 
 		default:
 			break;
@@ -192,10 +217,11 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		switch (hwID) {
 		case CBN_SELCHANGE: {
 			HWND hWndCombobox = (HWND)lParam;
-			if (hWndCombobox == m_pPlayList.get()->GetHandle())
-			{
+			if (hWndCombobox == m_pPlayList.get()->GetHandle()) {
 				INT ID = m_pPlayList.get()->SelectedItemID() + 0x1;
 				if (m_audioPlayer.CurrentAudio() != ID) {
+					m_audioPlayer.ChangeStateAudio
+						(MainAudioPlayer::STATE_STOP);
 					(void)ChangeAudioMusic(ID);
 				}
 			}
@@ -270,9 +296,32 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 				)
 				{
 					m_audioPlayer.PositonAudio(0.0);
-					m_audioPlayer.ChangeStateAudio
-					(MainAudioPlayer::STATE_STOP);
-					m_pPlay.get()->SetText(L"Play");
+					switch (m_iPB) {
+					case PB_STATE_STOP: {
+						m_audioPlayer.ChangeStateAudio
+							(MainAudioPlayer::STATE_STOP);
+						m_pPlay.get()->SetText(L"Play");
+					} break;
+					case PB_STATE_REPEAT: {
+						m_audioPlayer.ChangeStateAudio
+							(MainAudioPlayer::STATE_PLAY);
+					} break;
+					case PB_STATE_CONTINUE: {
+						INT iCount = m_pPlayList.
+							get()->CountOfItems();
+						m_audioPlayer.ChangeStateAudio
+							(MainAudioPlayer::STATE_PLAY);
+						if (iCount > 0x1) {
+							INT ID = (m_audioPlayer.
+								CurrentAudio() % iCount
+							);
+							(void)ChangeAudioMusic(ID + 0x1);
+						}
+					} break;
+
+					default:
+						break;
+					}
 				}
 				m_conSlider.pAudioTrack.get()->SetPos
 				((DWORD)(m_audioPlayer.CurrentPositonAudio() *

@@ -31,9 +31,9 @@ public:
 	AUDIOID CurrentAudio(void) const;
 
 	void ChangeStateAudio
-		(int nState);
+		(signed int nState);
 	void SwapStateAudio(void);
-	int CurrentStateAudio
+	signed int CurrentStateAudio
 		(void) const;
 
 	void VolumeAudio
@@ -59,7 +59,8 @@ private:
 		<AUDIO_DATA> m_vecAudio;
 	mutable std::atomic<AUDIOID> m_nCurrentAudio = -0x1;
 
-	std::atomic<int> m_nState = STATE_NULL;
+	std::atomic
+		<signed int> m_nState = STATE_NULL;
 	std::atomic<float>
 		m_fVolume = 1.f,
 		m_fPitch = 1.f;

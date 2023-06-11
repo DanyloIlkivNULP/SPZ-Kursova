@@ -21,7 +21,7 @@ protected:
 	typedef AudioEngine::PlayingAudio*
 		pPlayingAudio;
 private:
-	class ActivePlayingAudio :
+	class AudioPlayerHandler :
 		public AudioEngine::PlayingAudio
 	{
 		friend class AudioPlayer;
@@ -29,10 +29,10 @@ private:
 		typedef AudioPlayer*
 			pAudioPlayer;
 	public:
-		ActivePlayingAudio(AUDIOID nAudioSampleID,
+		AudioPlayerHandler(AUDIOID nAudioSampleID,
 			pAudioPlayer pAP
 		);
-		~ActivePlayingAudio(void);
+		~AudioPlayerHandler(void);
 
 		float ProcessAudioSample(int nChannel,
 			float fGlobalTime, float fTimeStep, float fMixerSample,
