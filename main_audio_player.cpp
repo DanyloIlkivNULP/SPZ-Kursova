@@ -162,8 +162,8 @@ float MainAudioPlayer::AudioHandler(int nChannel,
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
-	if (PlayingAudio().get() != pH ||
-		m_nCurrentAudio.load() == _NULL_ID_
+	if (m_nCurrentAudio.load() == _NULL_ID_ ||
+		PlayingAudio().get() != pH
 	)
 	{ return(fMixerSample); }
 
