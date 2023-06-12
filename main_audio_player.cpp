@@ -40,11 +40,11 @@ std::shared_ptr<AudioEngine::PlayingAudio>&
 AUDIOID MainAudioPlayer::LoadAudioSample
 	(const wchar_t* wcWavFile)
 {
-	AUDIOID ID = -0x1;
+	AUDIOID ID = _NULL_ID_;
 	ID = m_pAE->
 		LoadAudioSample(wcWavFile);
 
-	if (ID == -0x1)
+	if (ID == _NULL_ID_)
 	{ return(ID); }
 
 	std::lock_guard<std::recursive_mutex>
@@ -55,7 +55,7 @@ AUDIOID MainAudioPlayer::LoadAudioSample
 	m_vecAudio.push_back(ad);
 	m_nCurrentAudio.store
 		(m_vecAudio.size());
-
+	
 	m_nState.store(STATE_STOP);
 	return(m_nCurrentAudio.load());
 }
@@ -76,7 +76,7 @@ AUDIOID MainAudioPlayer::CurrentAudioSample(void) const
 { return(m_nCurrentAudio.load()); }
 
 const wchar_t* MainAudioPlayer::FileName(void) const {
-	if (m_nCurrentAudio.load() == -0x1) { return(NULL); }
+	if (m_nCurrentAudio.load() == _NULL_ID_) { return(NULL); }
 
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
@@ -113,7 +113,7 @@ float MainAudioPlayer::CurrentPitch(void) const
 
 
 void MainAudioPlayer::PositonAudio(double dSamplePosition) {
-	if (m_nCurrentAudio.load() == -0x1) { return; }
+	if (m_nCurrentAudio.load() == _NULL_ID_) { return; }
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
@@ -123,7 +123,7 @@ void MainAudioPlayer::PositonAudio(double dSamplePosition) {
 }
 
 double MainAudioPlayer::CurrentPositonAudio(void) const {
-	if (m_nCurrentAudio.load() == -0x1) { return(0.0); }
+	if (m_nCurrentAudio.load() == _NULL_ID_) { return(0.0); }
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
@@ -133,7 +133,7 @@ double MainAudioPlayer::CurrentPositonAudio(void) const {
 }
 
 DWORD MainAudioPlayer::NumOfSamples(void) const {
-	if (m_nCurrentAudio.load() == -0x1) { return(0x0); }
+	if (m_nCurrentAudio.load() == _NULL_ID_) { return(0x0); }
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
@@ -143,7 +143,7 @@ DWORD MainAudioPlayer::NumOfSamples(void) const {
 }
 
 DWORD MainAudioPlayer::NumOfSamplesPerSec(void) const {
-	if (m_nCurrentAudio.load() == -0x1) { return(0x0); }
+	if (m_nCurrentAudio.load() == _NULL_ID_) { return(0x0); }
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
@@ -162,28 +162,36 @@ float MainAudioPlayer::AudioHandler(int nChannel,
 	std::lock_guard<std::recursive_mutex>
 		lgData(m_muxData);
 
-	if (m_nCurrentAudio.load() == -0x1)
-		{ return(fMixerSample); }
-	if (PlayingAudio().get() != pH)
-		{ return(fMixerSample); }
-	// Calculate sample position
-	if (m_nState.load() != STATE_STOP) {
-		PlayingAudio().get()->m_dSamplePosition.store(PlayingAudio().get()->m_dSamplePosition.load() +
-			(double)pS->wavHeader.nSamplesPerSec * m_fPitch.load() * fTimeStep
-		);
-	} else
+	if (PlayingAudio().get() != pH ||
+		m_nCurrentAudio.load() == _NULL_ID_
+	)
 	{ return(fMixerSample); }
 
-	// If sample position is valid add to the mix
-	if (PlayingAudio().get()->m_dSamplePosition < pS->m_nSamples) {
-		fMixerSample += (
-			pS->m_fSample[((long)round(PlayingAudio().get()->m_dSamplePosition) * pS->m_nChannels) + nChannel]
-		) * m_fVolume.load();
+	AE_DATA ae_data = { 0x0 };
+		AudioEngineData(ae_data);
+	if (pS->m_nChannels <= nChannel)
+		{ return(fMixerSample); }
+	int nDelta = pS->m_nChannels - ae_data.wChannels;
+	for (int i = 0x0; i <= max(nDelta, 0x0); i++) {
+		// Calculate sample position
+		if (m_nState.load() != STATE_STOP) {
+			PlayingAudio().get()->m_dSamplePosition.store(PlayingAudio().get()->m_dSamplePosition.load() +
+				(double)(pS->wavHeader.nSamplesPerSec / pS->m_nChannels) * m_fPitch.load() * fTimeStep
+			);
+		} else
+		{ return(fMixerSample); }
+
+		// If sample position is valid add to the mix
+		if (PlayingAudio().get()->m_dSamplePosition < pS->m_nSamples) {
+			fMixerSample += (
+				pS->m_fSample[(long)(PlayingAudio().get()->m_dSamplePosition) * pS->m_nChannels + nChannel]
+			) * m_fVolume.load();
+		}
+		else {
+			PlayingAudio().get()->
+				m_dSamplePosition = (double)pS->m_nSamples;
+		} // Else sound has completed
 	}
-	else {
-		PlayingAudio().get()->
-			m_dSamplePosition = (double)pS->m_nSamples;
-	} // Else sound has completed
 	return(fMixerSample);
 }
 

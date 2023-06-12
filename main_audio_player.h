@@ -58,7 +58,7 @@ public:
 private:
 	mutable std::vector
 		<AUDIO_DATA> m_vecAudio;
-	mutable std::atomic<AUDIOID> m_nCurrentAudio = -0x1;
+	mutable std::atomic<AUDIOID> m_nCurrentAudio = _NULL_ID_;
 
 	std::atomic
 		<signed int> m_nState = STATE_NULL;

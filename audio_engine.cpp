@@ -36,19 +36,20 @@ void AudioEngine::PlayAudioSample(AUDIOID ID)
 
 // The audio system uses by default a specific wave format
 bool AudioEngine::CreateAudio(
-	unsigned int nSampleRate, unsigned int nBitsPerSample,
-	unsigned int nChannels, unsigned int nBlocks,
-	unsigned int nBlockSamples
+	 DWORD dwSampleRate, WORD wBitsPerSample,
+	 WORD wChannels, DWORD dwBlocks,
+	 DWORD dwBlockSamples
 )
 {
 	// Initialise Sound Engine
-	m_nSampleRate = nSampleRate;
-	m_nBitsPerSample = nBitsPerSample;
-	m_nChannels = nChannels;
-	m_nBlockCount = nBlocks;
-	m_nBlockSamples = nBlockSamples;
-	m_nBlockFree = m_nBlockCount;
-	m_nBlockCurrent = 0x0;
+	m_dwSampleRate = dwSampleRate;
+	m_wBitsPerSample = wBitsPerSample;
+	m_wChannels = wChannels;
+
+	m_dwBlockCount = dwBlocks;
+	m_dwBlockSamples = dwBlockSamples;
+	m_dwBlockFree = m_dwBlockCount;
+	m_dwBlockCurrent = 0x0;
 
 	m_pBlockMemory = nullptr;
 	m_pWaveHeaders = nullptr;
@@ -56,9 +57,9 @@ bool AudioEngine::CreateAudio(
 	// Device is available
 	WAVEFORMATEX waveFormat;
 	waveFormat.wFormatTag = WAVE_FORMAT_PCM;
-	waveFormat.nSamplesPerSec = m_nSampleRate;
-	waveFormat.wBitsPerSample = m_nBitsPerSample;
-	waveFormat.nChannels = m_nChannels;
+	waveFormat.nSamplesPerSec = m_dwSampleRate;
+	waveFormat.wBitsPerSample = m_wBitsPerSample;
+	waveFormat.nChannels = m_wChannels;
 	waveFormat.nBlockAlign = (waveFormat.wBitsPerSample / 0x8) * waveFormat.nChannels;
 	waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
 	waveFormat.cbSize = 0x0;
@@ -71,20 +72,20 @@ bool AudioEngine::CreateAudio(
 	{ return(DestroyAudio()); }
 
 	// Allocate Wave|Block Memory
-	m_pBlockMemory = new short[m_nBlockCount * m_nBlockSamples];
+	m_pBlockMemory = new short[m_dwBlockCount * m_dwBlockSamples];
 	if (m_pBlockMemory == nullptr)
 	{ return(DestroyAudio()); }
-	ZeroMemory(m_pBlockMemory, sizeof(short) * m_nBlockCount * m_nBlockSamples);
+	ZeroMemory(m_pBlockMemory, (m_wBitsPerSample / 0x8) * m_dwBlockCount * m_dwBlockSamples);
 
-	m_pWaveHeaders = new WAVEHDR[m_nBlockCount];
+	m_pWaveHeaders = new WAVEHDR[m_dwBlockCount];
 	if (m_pWaveHeaders == nullptr)
 	{ return(DestroyAudio()); }
-	ZeroMemory(m_pWaveHeaders, sizeof(WAVEHDR) * m_nBlockCount);
+	ZeroMemory(m_pWaveHeaders, sizeof(WAVEHDR) * m_dwBlockCount);
 
 	// Link headers to block memory
-	for (unsigned int n = 0x0; n < m_nBlockCount; n++) {
-		m_pWaveHeaders[n].dwBufferLength = m_nBlockSamples * sizeof(short);
-		m_pWaveHeaders[n].lpData = (LPSTR)(m_pBlockMemory + (n * m_nBlockSamples));
+	for (size_t n = 0x0; n < m_dwBlockCount; n++) {
+		m_pWaveHeaders[n].dwBufferLength = m_dwBlockSamples * (m_wBitsPerSample / 0x8);
+		m_pWaveHeaders[n].lpData = (LPSTR)(m_pBlockMemory + (n * m_dwBlockSamples));
 	}
 
 	m_bAudioThreadActive = true;
@@ -116,7 +117,7 @@ void AudioEngine::waveOutProc(HWAVEOUT hWaveOut, UINT uMsg, DWORD dwParam1, DWOR
 	{ /*Code...*/ } break;
 
 	case WOM_DONE: {
-		m_nBlockFree += 0x1;
+		m_dwBlockFree += 0x1;
 		std::unique_lock<std::mutex> lm(m_muxBlockNotZero);
 		m_cvBlockNotZero.notify_one();
 	} break;
@@ -141,30 +142,30 @@ void CALLBACK AudioEngine::waveOutProcWrap(HWAVEOUT hWaveOut,
 // and then issued to the soundcard.
 void AudioEngine::AudioThread(void) {
 	m_fGlobalTime = 0.f;
-	float fTimeStep = 1.f / (float)m_nSampleRate;
+	float fTimeStep = 1.f / (float)m_dwSampleRate;
 
 	// Goofy hack to get maximum integer for a type at run-time
-	short nMaxSample = (short)pow(0x2, m_nBitsPerSample - 0x1) - 0x1;
+	short nMaxSample = (short)pow(0x2, m_wBitsPerSample - 0x1) - 0x1;
 	float fMaxSample = (float)nMaxSample;
 	short nPreviousSample = 0x0;
 
 	while (m_bAudioThreadActive) {
 		// Wait for block to become available
-		if (m_nBlockFree == 0x0) {
+		if (m_dwBlockFree == 0x0) {
 			std::unique_lock<std::mutex> lm(m_muxBlockNotZero);
-			while (m_nBlockFree == 0x0)
+			while (m_dwBlockFree == 0x0)
 			{ m_cvBlockNotZero.wait(lm); }
 		}
 
 		// Block is here, so use it
-		m_nBlockFree -= 0x1;
+		m_dwBlockFree -= 0x1;
 
 		// Prepare block for processing
-		if (m_pWaveHeaders[m_nBlockCurrent].dwFlags & WHDR_PREPARED)
-		{ waveOutUnprepareHeader(m_hwDevice, &m_pWaveHeaders[m_nBlockCurrent], sizeof(WAVEHDR)); }
+		if (m_pWaveHeaders[m_dwBlockCurrent].dwFlags & WHDR_PREPARED)
+		{ waveOutUnprepareHeader(m_hwDevice, &m_pWaveHeaders[m_dwBlockCurrent], sizeof(WAVEHDR)); }
 
 		short nNewSample = 0x0;
-		int nCurrentBlock = m_nBlockCurrent * m_nBlockSamples;
+		int nCurrentBlock = m_dwBlockCurrent * m_dwBlockSamples;
 
 		auto clip = [](float fSample, float fMax) {
 			if (fSample >= 0.f)
@@ -173,9 +174,9 @@ void AudioEngine::AudioThread(void) {
 			{ return(fmax(fSample, -fMax)); }
 		};
 
-		for (unsigned int n = 0x0; n < m_nBlockSamples; n += m_nChannels) {
+		for (size_t n = 0x0; n < m_dwBlockSamples; n += m_wChannels) {
 			// User Process
-			for (unsigned int c = 0x0; c < m_nChannels; c++) {
+			for (size_t c = 0x0; c < m_wChannels; c++) {
 				nNewSample = (short)(clip(GetMixerOutput(c, m_fGlobalTime, fTimeStep), 1.f) * fMaxSample);
 				m_pBlockMemory[nCurrentBlock + n + c] = nNewSample;
 				nPreviousSample = nNewSample;
@@ -185,11 +186,11 @@ void AudioEngine::AudioThread(void) {
 		}
 
 		// Send block to sound device
-		waveOutPrepareHeader(m_hwDevice, &m_pWaveHeaders[m_nBlockCurrent], sizeof(WAVEHDR));
-		waveOutWrite(m_hwDevice, &m_pWaveHeaders[m_nBlockCurrent], sizeof(WAVEHDR));
+		waveOutPrepareHeader(m_hwDevice, &m_pWaveHeaders[m_dwBlockCurrent], sizeof(WAVEHDR));
+		waveOutWrite(m_hwDevice, &m_pWaveHeaders[m_dwBlockCurrent], sizeof(WAVEHDR));
 
-		m_nBlockCurrent += 0x1;
-		m_nBlockCurrent %= m_nBlockCount;
+		m_dwBlockCurrent += 0x1;
+		m_dwBlockCurrent %= m_dwBlockCount;
 	}
 
 	(void)waveOutClose(m_hwDevice);

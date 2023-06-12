@@ -47,3 +47,16 @@ float AudioPlayer::AudioPlayerHandler::ProcessAudioSample(int nChannel,
 linkExit:
 	return(fResult);
 }
+
+void AudioPlayer::AudioEngineData
+	(AE_DATA& ae_data) const
+{
+	AE_DATA _ae_data_ = {
+		m_pAE->m_dwSampleRate,
+		m_pAE->m_wBitsPerSample,
+		m_pAE->m_wChannels,
+
+		m_pAE->m_dwBlockCount,
+		m_pAE->m_dwBlockSamples
+	}; ae_data = _ae_data_;
+}

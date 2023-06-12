@@ -4,6 +4,14 @@
 
 #include "framework.h"
 
+#define _DEFAULT_SAMPLE_RATE_ 44100
+#define _DEFAULT_BITS_PER_SAMPLE_ 16
+
+#define _CHANNEL_MONO_ 0x1
+#define _CHANNEL_STEREO_ 0x2
+
+#define _NULL_ID_ -0x1
+
 class AudioPlayer;
 
 class AudioEngine {
@@ -23,9 +31,10 @@ public:
 
 
 	virtual bool CreateAudio(
-		unsigned int nSampleRate = 44100, unsigned int nBitsPerSample = 16,
-		unsigned int nChannels = 0x1, unsigned int nBlocks = 0x8,
-		unsigned int nBlockSamples = 512
+		DWORD dwSampleRate = _DEFAULT_SAMPLE_RATE_,
+		WORD wBitsPerSample = _DEFAULT_BITS_PER_SAMPLE_,
+		WORD wChannels = _CHANNEL_STEREO_,
+		DWORD dwBlocks = 0x8, DWORD dwBlockSamples = 512
 	);
 	virtual bool DestroyAudio(void);
 
@@ -50,12 +59,13 @@ private:
 	void AudioThread(void);
 
 protected:
-	unsigned int m_nSampleRate = 0x0;
-	unsigned int m_nBitsPerSample = 0x0;
-	unsigned int m_nChannels = 0x0;
-	unsigned int m_nBlockCount = 0x0;
-	unsigned int m_nBlockSamples = 0x0;
-	unsigned int m_nBlockCurrent = 0x0;
+	DWORD m_dwSampleRate = 0x0;
+	WORD m_wBitsPerSample = 0x0;
+	WORD m_wChannels = 0x0;
+
+	DWORD m_dwBlockCount = 0x0,
+		m_dwBlockSamples = 0x0,
+		m_dwBlockCurrent = 0x0;
 
 	short* m_pBlockMemory = nullptr;
 	WAVEHDR* m_pWaveHeaders = nullptr;
@@ -66,7 +76,7 @@ protected:
 	std::thread m_AudioThread;
 	std::atomic<bool>
 		m_bAudioThreadActive = false;
-	std::atomic<unsigned int> m_nBlockFree = 0x0;
+	std::atomic<DWORD> m_dwBlockFree = 0x0;
 
 	std::mutex m_muxProcessAudio;
 
@@ -99,14 +109,13 @@ protected:
 		if (a->m_bValid) {
 			std::lock_guard<std::mutex>
 				lgProcessAudio(m_muxProcessAudio);
-
 			vecAudioSamples.push_back(
 				std::move((std::shared_ptr<AudioSample>)a)
 			);
 			return(vecAudioSamples.size());
 		}
 		else
-		{ return(-0x1); }
+		{ return(_NULL_ID_); }
 	}
 	template<class CreatingPlayingAudioType, typename ...ArgumentTypes>
 	void CreatePlayingAudio(AUDIOID ID, ArgumentTypes&& ...args) {

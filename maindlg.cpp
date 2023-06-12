@@ -107,7 +107,7 @@ bool MainDlg::ChangeAudioMusic(
 {
 	bool bResult = false;
 
-	if (nMusicID != -0x1)
+	if (nMusicID != _NULL_ID_)
 		{ bResult = true; }
 	(void)m_audioPlayer.
 		ChangeCurrentAudioSample(nMusicID);
@@ -115,31 +115,31 @@ bool MainDlg::ChangeAudioMusic(
 	m_audioPlayer.PositonAudio(NULL);
 
 	m_conStaticText.pFileName.get()->
-		ChangeState(nMusicID != -0x1);
+		ChangeState(nMusicID != _NULL_ID_);
 	m_conStaticText.pFileName.get()->
-		SetText(nMusicID != -0x1 ? m_audioPlayer.FileName() : _NULL_STRING_);
+		SetText(nMusicID != _NULL_ID_ ? m_audioPlayer.FileName() : _NULL_STRING_);
 
 	m_pPlayList.get()->
-		SelectItem(nMusicID != -0x1 ?
+		SelectItem(nMusicID != _NULL_ID_ ?
 			nMusicID - 0x1 : -0x1
 		);
 
 	m_conStaticText.pInfo.get()->
-		ChangeState(nMusicID != -0x1);
+		ChangeState(nMusicID != _NULL_ID_);
 	std::wstring wsInfo = L"Info...";
-	m_conStaticText.pInfo.get()->SetText(nMusicID != -0x1 ? wsInfo.data() : _NULL_STRING_);
+	m_conStaticText.pInfo.get()->SetText(nMusicID != _NULL_ID_ ? wsInfo.data() : _NULL_STRING_);
 
 	m_pPlay.get()->
-		ChangeState(nMusicID != -0x1);
+		ChangeState(nMusicID != _NULL_ID_);
 	WCHAR* wcState[0x2] = { (wchar_t*)L"Play", (wchar_t*)L"Pause" };
 	m_pPlay.get()->SetText
-		(nMusicID != -0x1 ?
+		(nMusicID != _NULL_ID_ ?
 			wcState[m_audioPlayer.CurrentStateAudio()] :
 			_NULL_STRING_
 		);
 
 	m_conStaticText.pDuration.get()->
-		ChangeState(nMusicID != -0x1);
+		ChangeState(nMusicID != _NULL_ID_);
 	m_conStaticText.pDuration.get()->SetText(_NULL_DURATION_);
 
 	m_audioPlayer.VolumeAudio(
@@ -175,7 +175,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			}
 		} break;
 		case ID_PLAY: {
-			if (m_audioPlayer.CurrentAudioSample() != -0x1) {
+			if (m_audioPlayer.CurrentAudioSample() != _NULL_ID_) {
 				switch (m_audioPlayer.CurrentStateAudio()) {
 					case MainAudioPlayer::STATE_PLAY:
 					{ m_pPlay.get()->SetText(L"Play"); } break;
@@ -197,7 +197,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 		case ID_X: {
 			m_audioPlayer.ChangeStateAudio
 				(MainAudioPlayer::STATE_STOP);
-			(void)ChangeAudioMusic(-0x1);
+			(void)ChangeAudioMusic(_NULL_ID_);
 		} break;
 
 		case ID_HIDE_WINDOW: {
@@ -289,7 +289,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 		case _TIMER_MAIN_ID_: {
 			if (m_bHold) { break; }
-			if (m_audioPlayer.CurrentAudioSample() != -0x1) {
+			if (m_audioPlayer.CurrentAudioSample() != _NULL_ID_) {
 				if (m_conSlider.pAudioTrack.get()->GetPos() ==
 					m_conSlider.pAudioTrack.get()->GetRange()
 				)

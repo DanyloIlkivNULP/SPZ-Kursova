@@ -50,6 +50,15 @@ public:
 	AudioPlayer(const AudioPlayer& ae) = delete;
 	AudioPlayer& operator=(const AudioPlayer& ae) = delete;
 
+	struct AE_DATA {
+	DWORD dwSampleRate = 0x0;
+	WORD wBitsPerSample = 0x0,
+		wChannels = 0x0;
+
+	DWORD dwBlockCount = 0x0,
+		dwBlockSamples = 0x0;
+	};
+
 	typedef std::pair<std::shared_ptr
 		<AudioEngine::AudioSample>, std::shared_ptr<AudioEngine::PlayingAudio>
 	> AUDIO_DATA;
@@ -64,6 +73,9 @@ protected:
 		float fGlobalTime, float fTimeStep, float fMixerSample,
 			const pAudioSample pS, const pPlayingAudio pH
 	) = 0x0;
+
+	void AudioEngineData
+		(AE_DATA& ae_data) const;
 };
 
 #endif // _AUDIO_PLAYER_H_
