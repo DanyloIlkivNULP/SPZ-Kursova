@@ -97,7 +97,12 @@ protected:
 			<AudioSampleType>(wcWavFile, std::forward<ArgumentTypes>(args)...);
 
 		if (a->m_bValid) {
-			vecAudioSamples.push_back(std::move((std::shared_ptr<AudioSample>)a));
+			std::lock_guard<std::mutex>
+				lgProcessAudio(m_muxProcessAudio);
+
+			vecAudioSamples.push_back(
+				std::move((std::shared_ptr<AudioSample>)a)
+			);
 			return(vecAudioSamples.size());
 		}
 		else
@@ -107,6 +112,9 @@ protected:
 	void CreatePlayingAudio(AUDIOID ID, ArgumentTypes&& ...args) {
 		std::shared_ptr<CreatingPlayingAudioType> s = std::make_shared
 			<CreatingPlayingAudioType>(ID, std::forward<ArgumentTypes>(args)...);
+
+		std::lock_guard<std::mutex>
+			lgProcessAudio(m_muxProcessAudio);
 		listActiveSamples.push_back(std::move(s));
 	}
 };

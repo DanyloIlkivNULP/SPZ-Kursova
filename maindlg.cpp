@@ -75,20 +75,19 @@ bool MainDlg::OnUserCreate(void) {
 bool MainDlg::OnUserDestroy(void) { return(true); }
 
 bool MainDlg::NewAudioMusic(const wchar_t* wcWavFile) {
-	if (wcWavFile == NULL) { return(false);
-	}
-	AUDIOID nMusicID = m_refAE.
+	if (wcWavFile == NULL) { return(false); }
+
+	AUDIOID nMusicID = m_audioPlayer.
 		LoadAudioSample(wcWavFile);
+
 	if (nMusicID == -(0x1))
 	{ Logger::ShowMessage(wcWavFile,
 		L"Failed to Load File!"); return(false);
 	}
 
-	AUDIOID ID = m_audioPlayer.
-		LoadAudio(nMusicID);
 	m_audioPlayer.ChangeStateAudio
 		(MainAudioPlayer::STATE_STOP);
-	(void)ChangeAudioMusic(ID);
+	(void)ChangeAudioMusic(nMusicID);
 
 	WCHAR wcFileName[MAX_PATH];
 	WCHAR wcExt[MAX_PATH];
@@ -111,7 +110,7 @@ bool MainDlg::ChangeAudioMusic(
 	if (nMusicID != -0x1)
 		{ bResult = true; }
 	(void)m_audioPlayer.
-		ChangeCurrentAudio(nMusicID);
+		ChangeCurrentAudioSample(nMusicID);
 
 	m_audioPlayer.PositonAudio(NULL);
 
@@ -176,7 +175,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			}
 		} break;
 		case ID_PLAY: {
-			if (m_audioPlayer.CurrentAudio() != -0x1) {
+			if (m_audioPlayer.CurrentAudioSample() != -0x1) {
 				switch (m_audioPlayer.CurrentStateAudio()) {
 					case MainAudioPlayer::STATE_PLAY:
 					{ m_pPlay.get()->SetText(L"Play"); } break;
@@ -219,7 +218,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 			HWND hWndCombobox = (HWND)lParam;
 			if (hWndCombobox == m_pPlayList.get()->GetHandle()) {
 				INT ID = m_pPlayList.get()->SelectedItemID() + 0x1;
-				if (m_audioPlayer.CurrentAudio() != ID) {
+				if (m_audioPlayer.CurrentAudioSample() != ID) {
 					m_audioPlayer.ChangeStateAudio
 						(MainAudioPlayer::STATE_STOP);
 					(void)ChangeAudioMusic(ID);
@@ -290,7 +289,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 
 		case _TIMER_MAIN_ID_: {
 			if (m_bHold) { break; }
-			if (m_audioPlayer.CurrentAudio() != -0x1) {
+			if (m_audioPlayer.CurrentAudioSample() != -0x1) {
 				if (m_conSlider.pAudioTrack.get()->GetPos() ==
 					m_conSlider.pAudioTrack.get()->GetRange()
 				)
@@ -313,7 +312,7 @@ LRESULT CALLBACK MainDlg::HandleMessage(UINT _In_ uMsg,
 							(MainAudioPlayer::STATE_PLAY);
 						if (iCount > 0x1) {
 							INT ID = (m_audioPlayer.
-								CurrentAudio() % iCount
+								CurrentAudioSample() % iCount
 							);
 							(void)ChangeAudioMusic(ID + 0x1);
 						}

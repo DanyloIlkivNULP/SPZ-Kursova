@@ -25,10 +25,11 @@ public:
 		STATE_NULL = -0x1
 	};
 
-	AUDIOID LoadAudio(AUDIOID ID);
-	bool ChangeCurrentAudio
+	AUDIOID LoadAudioSample
+		(const wchar_t* wcWavFile);
+	bool ChangeCurrentAudioSample
 		(AUDIOID ID);
-	AUDIOID CurrentAudio(void) const;
+	AUDIOID CurrentAudioSample(void) const;
 
 	void ChangeStateAudio
 		(signed int nState);
@@ -69,7 +70,7 @@ private:
 
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
-			const pAudioSample pS, const pPlayingAudio pA
+			const pAudioSample pS, const pPlayingAudio pH
 	);
 
 	AUDIO_DATA&

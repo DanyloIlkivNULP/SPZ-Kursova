@@ -13,9 +13,6 @@ AudioPlayer::~AudioPlayer(void)
 AudioPlayer::AUDIO_DATA AudioPlayer::CreateAudio
 	(AUDIOID nAudioSampleID)
 {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_pAE->m_muxProcessAudio);
-
 	m_pAE->CreatePlayingAudio
 		<AudioPlayerHandler>(nAudioSampleID, this);
 	return(

@@ -37,7 +37,13 @@ std::shared_ptr<AudioEngine::PlayingAudio>&
 	);
 }
 
-AUDIOID MainAudioPlayer::LoadAudio(AUDIOID ID) {
+AUDIOID MainAudioPlayer::LoadAudioSample
+	(const wchar_t* wcWavFile)
+{
+	AUDIOID ID = -0x1;
+	ID = m_pAE->
+		LoadAudioSample(wcWavFile);
+
 	if (ID == -0x1)
 	{ return(ID); }
 
@@ -54,7 +60,7 @@ AUDIOID MainAudioPlayer::LoadAudio(AUDIOID ID) {
 	return(m_nCurrentAudio.load());
 }
 
-bool MainAudioPlayer::ChangeCurrentAudio
+bool MainAudioPlayer::ChangeCurrentAudioSample
 	(AUDIOID ID)
 {
 	bool bResult = 0x0;
@@ -66,7 +72,7 @@ bool MainAudioPlayer::ChangeCurrentAudio
 	return(bResult);
 }
 
-AUDIOID MainAudioPlayer::CurrentAudio(void) const
+AUDIOID MainAudioPlayer::CurrentAudioSample(void) const
 { return(m_nCurrentAudio.load()); }
 
 const wchar_t* MainAudioPlayer::FileName(void) const {
@@ -150,7 +156,7 @@ DWORD MainAudioPlayer::NumOfSamplesPerSec(void) const {
 
 float MainAudioPlayer::AudioHandler(int nChannel,
 	float fGlobalTime, float fTimeStep, float fMixerSample,
-		const pAudioSample pS, const pPlayingAudio pA
+		const pAudioSample pS, const pPlayingAudio pH
 )
 {
 	std::lock_guard<std::recursive_mutex>
@@ -158,7 +164,7 @@ float MainAudioPlayer::AudioHandler(int nChannel,
 
 	if (m_nCurrentAudio.load() == -0x1)
 		{ return(fMixerSample); }
-	if (PlayingAudio().get() != pA)
+	if (PlayingAudio().get() != pH)
 		{ return(fMixerSample); }
 	// Calculate sample position
 	if (m_nState.load() != STATE_STOP) {

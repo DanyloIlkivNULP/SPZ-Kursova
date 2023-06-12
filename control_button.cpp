@@ -14,13 +14,15 @@ const wchar_t* Button::GetText(void)
 { return(m_wcText); }
 
 void Button::SetText(const wchar_t* wcText) {
-	if (wcText == NULL)
-	{ wcText = (wchar_t*)L'\0'; }
-
+	if (wcscmp(m_wcText, wcText) == NULL)
+		{ return; }
 	if (wcslen(m_wcText) != NULL)
 	{ ZeroMemory(m_wcText,
 		sizeof(wchar_t) * MAX_PATH);
 	}
+
+	if (wcText == NULL)
+	{ wcText = (wchar_t*)L'\0'; }
 
 	wcscpy_s(m_wcText, MAX_PATH, wcText);
 	(void)SetWindowText(m_hWnd,

@@ -62,7 +62,7 @@ protected:
 
 	virtual float AudioHandler(int nChannel,
 		float fGlobalTime, float fTimeStep, float fMixerSample,
-			const pAudioSample pS, const pPlayingAudio pA
+			const pAudioSample pS, const pPlayingAudio pH
 	) = 0x0;
 };
 

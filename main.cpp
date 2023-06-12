@@ -9,6 +9,12 @@
 
 using namespace std;
 
+float MakeNoice(int nChannel, float fGlobalTime, float fTimeStep) {
+	float fOutput = 0.f;
+	fOutput = 0.5f * sinf(440.f * 3.14159f * 2.f * fGlobalTime);
+	return(0.f * fOutput);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
@@ -40,7 +46,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		(Logger::LogLevel::LOG_LVL_DEBUG);
 	Logger::ClearLog();
 
-	AudioEngine audio;
+	AudioEngine audio(&MakeNoice);
 	audio.CreateAudio();
 
 	MainDlg* mainDlg = new

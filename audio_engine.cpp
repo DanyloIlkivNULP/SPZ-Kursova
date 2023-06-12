@@ -25,21 +25,14 @@ AudioEngine::~AudioEngine(void) {
 // Load a 16-bit WAVE file @ 44100Hz ONLY into memory. A sample ID
 // number is returned if successful, otherwise -1
 AUDIOID AudioEngine::LoadAudioSample(const wchar_t* wcWavFile) {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_muxProcessAudio);
-
 	AUDIOID idResult = -(0x1);
 	idResult = LoadAudioSample<AudioSample>(wcWavFile);
 	return(idResult);
 }
 
 // Add sample 'id' to the mixers sounds to play list
-void AudioEngine::PlayAudioSample(AUDIOID ID) {
-	std::lock_guard<std::mutex>
-		lgProcessAudio(m_muxProcessAudio);
-
-	CreatePlayingAudio<PlayingAudio>(ID);
-}
+void AudioEngine::PlayAudioSample(AUDIOID ID)
+{ CreatePlayingAudio<PlayingAudio>(ID); }
 
 // The audio system uses by default a specific wave format
 bool AudioEngine::CreateAudio(
@@ -199,6 +192,7 @@ void AudioEngine::AudioThread(void) {
 		m_nBlockCurrent %= m_nBlockCount;
 	}
 
+	(void)waveOutClose(m_hwDevice);
 	m_fUserSoundSample = m_fUserSoundFilter = nullptr;
 
 	std::unique_lock<std::mutex>
